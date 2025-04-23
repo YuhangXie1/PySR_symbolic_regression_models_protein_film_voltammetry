@@ -13,24 +13,24 @@ data_combined_9 = data_volt.join(data_amp["current"])
 data_combined_9.insert(0, "Freq", 9)
 
 #loading data
-""" data_volt = pd.read_csv("Data_for_eq_learning/36_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
+data_volt = pd.read_csv("Data_for_eq_learning/36_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
 data_amp = pd.read_csv("Data_for_eq_learning/36_Hz_2_cv_current", sep="\t", names = ["time","current"])
 data_combined_36 = data_volt.join(data_amp["current"])
-data_combined_36.insert(0, "Freq", 36) """
+data_combined_36.insert(0, "Freq", 36)
 
 #combining data
-""" data_combined = pd.concat([data_combined_9, data_combined_36])
- """
+data_combined = pd.concat([data_combined_9, data_combined_36])
+
 #slicing data to remove start and end noise. Putting data into tuples
 slice_start = 200
 slice_end = -100
-t_v = tuple(data_combined_9["time"].iloc[slice_start:slice_end])
-y_v = tuple(data_combined_9["voltage"].iloc[slice_start:slice_end])
-y_a = tuple(data_combined_9["current"].iloc[slice_start:slice_end])
-freq = tuple(data_combined_9["Freq"].iloc[slice_start:slice_end])
+t_v = tuple(data_combined["time"].iloc[slice_start:slice_end])
+y_v = tuple(data_combined["voltage"].iloc[slice_start:slice_end])
+y_a = tuple(data_combined["current"].iloc[slice_start:slice_end])
+freq = tuple(data_combined["Freq"].iloc[slice_start:slice_end])
 
 #calculating voltage derivative
-dv_dt = []
+""" dv_dt = []
 t_v_truncated = []
 y_a_truncated = []
 y_v_truncated = []
@@ -43,7 +43,7 @@ for i in range(0,len(y_v)):
         y_v_truncated.append(y_v[i])
         freq_truncated.append(freq[i])
     except:
-        pass
+        pass """
 
 #slicing data to positive and negative current
 y_a_pos = []
@@ -83,13 +83,10 @@ y = y1.reshape(-1,1)
 X = X.reshape(-1,1) """
 
 #shaping variables for pysr
-""" X = np.array(y_v_fit_neg).reshape(-1,1)
-y = np.array(y_a_neg).reshape(-1,1) """
+X = np.array(y_v_fit_pos).reshape(-1,1)
+y = np.array(y_a_pos).reshape(-1,1)
 
-X = np.array(dv_dt).reshape(-1,1)
-y = np.array(y_a_truncated).reshape(-1,1)
-
-freq_x = np.array(freq_truncated).reshape(-1,1)
+freq_x = np.array(freq_pos).reshape(-1,1)
 X = np.concatenate([X,freq_x],1)
 
 
@@ -139,33 +136,38 @@ print(f"Time elapsed: {end_time - start_time}")
 #equations trained from positive circle relationship
 x_neg = np.array(y_v_fit_neg).reshape(-1,1)
 x_pos = np.array(y_v_fit_pos).reshape(-1,1)
-f = 9
+f_neg = np.array(freq_neg).reshape(-1,1)
+f_pos = np.array(freq_pos).reshape(-1,1)
 
 y_pred_pos = x_pos*(x_pos*x_pos*(x_pos*(x_pos + x_pos) + x_pos) - 0.0043396144)*(-0.025317585) - 1*(-0.00017110028)
 
 #equations trained from negative circle relationship
 #y_pred_neg = np.abs(x)*x*(-x - 0.18009685)*(-0.006479142) - 0.0001740445
-y_pred_neg = -0.00029978607 - 0.0001190309/np.cos((x_neg - f)*3.8130171)
+y_pred_neg = -0.00029978607 - 0.0001190309/np.cos((x_neg - f_neg)*3.8130171)
 
 #prediction on dv_dt
 #y_pred = x*1.0125009e-5
 
+
+#prediction on multi Hz
+y_pred_multi_neg = (-(f_neg - (0.6901077 - x_neg*f_neg)*np.asinh(f_neg/((0.80006087/(x_neg*(-1.0617529) - 0.32629368))))) - 0.40541518)*1.2011983e-5
+y_pred_multi_pos = 0.0004927065*np.abs(np.sin(f_pos*np.cosh(x_pos)))
+
 fig, axs = plt.subplots()
-""" axs[0].plot(data_combined_9["voltage"], data_combined_9["current"], label = "9 Hz")
-axs[0].plot(data_combined_36["voltage"], data_combined_36["current"], label = "36 Hz") """
-""" axs[0].plot(t_v_truncated,dv_dt, label = "dv/dt")
-axs[0].set_xlabel("time")
-axs[0].set_ylabel("dV/dt") """
-#axs[0].legend()
-#axs[0].scatter(X, y)
-""" axs[1].scatter(y_v_fit_neg, y_a_neg, marker = ".")
-axs[1].scatter(x,y_pred_neg, marker = ".") """
-axs.scatter(y_v_fit_pos, y_pred_pos, label = "postive current prediction", color = "red")
+axs.plot(data_combined_9["voltage"], data_combined_9["current"], label = "9 Hz", color = "blue")
+axs.plot(data_combined_36["voltage"], data_combined_36["current"], label = "36 Hz", color = "cyan")
+axs.scatter(y_v_fit_neg, y_pred_multi_neg, label = "neg predict", color = "red")
+axs.scatter(y_v_fit_pos, y_pred_multi_pos, label = "pos predict", color = "orange")
+axs.set_xlabel("voltage")
+axs.set_ylabel("current")
+axs.legend(loc = "right", bbox_to_anchor = (1.25, 0.6))
+
+""" axs.scatter(y_v_fit_pos, y_pred_pos, label = "postive current prediction", color = "red")
 axs.scatter(y_v_fit_neg, y_pred_neg, label = "negative current prediction", color = "orange")
 axs.plot(y_v_truncated, y_a_truncated, label = "data", color = "blue")
 axs.set_xlabel("voltage")
 axs.set_ylabel("current")
-axs.legend(loc = "center")
+axs.legend(loc = "center") """
 #axs[2].plot(dv_dt,y_a_truncated)
 #axs[0].plot(X, y_pred)
 fig.tight_layout()
