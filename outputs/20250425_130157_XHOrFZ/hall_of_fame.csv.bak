@@ -1,0 +1,13 @@
+Complexity,Loss,Equation
+1,31.315823,"x0"
+2,29.729439,"tan(x0)"
+3,22.00508,"x0 * 5.3204355"
+6,21.96073,"(x0 + asin(x0)) / 0.4270216"
+7,21.955748,"(sin(x0) + asin(x0)) / 0.40393162"
+15,21.919733,"(5.828163 - exp(neg(abs(tan(exp(53.722744 - (x0 * sinh(x0)))))))) * x0"
+19,21.841703,"x0 * (5.828163 ^ exp(neg(abs(tan(x0 * (53.722744 ^ exp(exp(sin(sin(x0)))))) * 0.017713087))))"
+20,21.80498,"x0 * (5.828163 ^ exp(neg(abs(tan(tan((53.722744 ^ exp(exp(sin(sin(x0))))) * x0) * -0.018103568)))))"
+22,21.799833,"x0 * (5.828163 ^ exp(neg(abs(tan(neg(tan(tan((53.722744 ^ exp(exp(sin(sin(x0))))) * x0) * 0.017713087)))))))"
+24,21.792439,"x0 * (5.828163 ^ exp(neg(abs(neg(tan(tan(neg(tan(tan((53.722744 ^ exp(exp(sin(sin(x0))))) * x0) * 0.017713087)))))))))"
+27,21.775988,"x0 * (5.828163 ^ exp(neg(abs(abs(tan(tan(neg(neg(tan(tan(neg(tan((53.722744 ^ exp(exp(sin(sin(x0))))) * x0) * 0.017713087))))))))))))"
+29,21.770582,"x0 * (5.828163 ^ exp(neg(abs(tan(neg(tan(abs(tan(tan(neg(neg(tan(neg(tan(x0 * (53.722744 ^ exp(exp(sin(sin(x0)))))) * 0.017713087))))))))))))))"

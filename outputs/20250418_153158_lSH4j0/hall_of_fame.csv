@@ -1,3 +1,0 @@
-Complexity,Loss,Equation
-1,0.65993255,"5.979091e-6"
-14,0.6599325,"asin((x0 - x0) + tanh(log(sin(tan(x0 / x0))))) / -9.2910795"
