@@ -1,2 +1,0 @@
-model 0 time taken = 0:02:40.117424 hr:min:sec 
-model 1 time taken = 0:02:43.096397 hr:min:sec 
