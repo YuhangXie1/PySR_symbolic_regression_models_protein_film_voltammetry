@@ -7,9 +7,9 @@ import os
 import datetime
 from pathlib import Path
 import csv
-from sympy import Symbol, sympify
+from sympy import Symbol, sympify, expand
 
-def simulate_data(capacitance_array, percentage_noise, ID):
+def simulate_data(capacitance_array, add_noise, percentage_noise, ID):
     #simulating data
     time_start = 0
     time_end = 100
@@ -20,10 +20,14 @@ def simulate_data(capacitance_array, percentage_noise, ID):
     dv_dt = np.cos(time_data)
 
     #simulating current
-    current = capacitance_array[1]*dv_dt + capacitance_array[2] * dv_dt**2 + capacitance_array[0]
+    current = capacitance_array[0] + capacitance_array[1]*dv_dt + capacitance_array[2] * dv_dt**2
 
     #adding noise
-    gaussian_noise = np.random.normal(0, 1*abs(max(current))*percentage_noise, len(current))
+    if add_noise:
+        gaussian_noise = np.random.normal(0, 1*abs(max(current))*percentage_noise, len(current))
+    else:
+        gaussian_noise = 0
+
     current_noise = current + gaussian_noise
 
     #make file structure if does not exist
@@ -86,16 +90,18 @@ def model(x, y, sim_current, capacitance_array, ID):
 
     with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file:
         best = model.get_best()
-        coeff_0, coeff_1 = calculate_percent_diff_to_set(model, capacitance_array)
+        coeff_array = calculate_percent_diff_to_set(model, capacitance_array)
         writer = csv.writer(file)
         writer.writerow([
                         ID,
-                        str(model.sympy()),
+                        f"{capacitance_array[0]} + {capacitance_array[1]}*x0 + {capacitance_array[2]}*x0**2",
+                        expand(sympify(str(model.sympy()))),
                         best.loss,
                         best.complexity,
                         calculate_predict_MSE(dv_dt, sim_current, model, ID),
-                        coeff_0,
-                        coeff_1,
+                        coeff_array[0],
+                        coeff_array[1],
+                        coeff_array[2],
                         ])
 
     #writing model parameters to metadata
@@ -148,12 +154,17 @@ def calculate_predict_MSE(dv_dt, current, model, ID):
 
 def calculate_percent_diff_to_set(model, capacitance_array):
     x0 = Symbol("x0")
-    expression = sympify(str(model.sympy()))
-    coeff_array = [expression.coeff(x0,0), expression.coeff(x0,1)]
-    percentage_diff = lambda pred, real: ((pred - real)/real)*100
-    percentage_diff_array = [percentage_diff(coeff_array[0],capacitance_array[0]), percentage_diff(coeff_array[1],capacitance_array[1])]
+    expression = expand(sympify(str(model.sympy())))
 
-    return percentage_diff_array
+    try:
+        coeff_array = [expression.coeff(x0,0), expression.coeff(x0,1), expression.coeff(x0,2)]
+        percentage_diff = lambda pred, real: ((pred - real)/real)*100
+        percentage_diff_array = [percentage_diff(coeff_array[i],capacitance_array[i]) for i in range(0,len(coeff_array))]
+        return percentage_diff_array
+    
+    except:
+        print(f"{expression} is not a polynomial")
+        return [np.nan,np.nan,np.nan]
 
 def generate_plots(dv_dt, current, predicted_current, ID):
     fig, axs = plt.subplots()
@@ -175,22 +186,25 @@ percentage_noise = 0.1
 capacitance_array = [[np.random.uniform(-100.0,100.0),np.random.uniform(-100.0,100.0),np.random.uniform(-100.0,100.0)] for x in range(number_of_repeats)]
 #capacitance_array = [[1,2,3] for x in range(number_of_repeats)]
 
+#output_filepath = rf"results/20250428-poly-2-{percentage_noise*100}"
 output_filepath = rf"results/20250428-poly-2-{percentage_noise*100}"
 Path(output_filepath).mkdir(parents=True, exist_ok=True)
 with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file:
     writer = csv.writer(file)
     writer.writerow([
                 "ID",
+                "set_equation",
                 "picked_equation",
                 "loss",
                 "complexity",
                 "MSE",
                 "%diff_to_set_coeff_0",
                 "%diff_to_set_coeff_1",
+                "%diff_to_set_coeff_2",
                 ])
 
 for i in range(0,len(capacitance_array)):
-    dv_dt, current_noise, current = simulate_data(capacitance_array[i], percentage_noise, ID=i)
+    dv_dt, current_noise, current = simulate_data(capacitance_array[i], False, percentage_noise, ID=i)
 
     start_time = time.time()
     select_model = model(dv_dt,current_noise, current, capacitance_array[i], ID=i)

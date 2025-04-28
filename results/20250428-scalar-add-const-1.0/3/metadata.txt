@@ -1,9 +1,9 @@
 time data: start: 0, end: 100, step: 0.1 
 voltage formula: dv_dv = np.cos(time_data) 
-current formula: current = -37.449341511722146*dv_dt + 0 * dv_dt**2 + 25.00979113426503 
+current formula: current = 0.645408345179959*dv_dt + 0 * dv_dt**2 + 63.00142874104674 
 current noise: current + np.random.normal(0, 1, len(current))*max(current)*0.01 #percentage noise 
-median noise percentage: 1.7435902105411802 % 
-model run ID: 20250428_112029_9xLRE3
+median noise percentage: 0.6924653541511759 % 
+model run ID: 20250428_121334_GwyBqn
         
                        model = PySRRegressor(
         maxsize=30,
