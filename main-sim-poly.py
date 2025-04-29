@@ -39,7 +39,7 @@ def simulate_data(capacitance_array, add_noise, percentage_noise, ID):
         metadata.write("voltage formula: dv_dv = np.cos(time_data) \n")
         metadata.write(f"current formula: current = {capacitance_array[1]}*dv_dt + {capacitance_array[2]} * dv_dt**2 + {capacitance_array[0]} \n")
         metadata.write(f"current noise: current + np.random.normal(0, 1, len(current))*max(current)*{percentage_noise} #percentage noise \n")
-        metadata.write(f"median noise percentage: {np.median(np.abs((gaussian_noise/current)*100))} % \n")
+        metadata.write(f"median noise percentage: {np.median(np.abs((gaussian_noise/current)*100)) if add_noise else 0} % \n")
 
     return dv_dt, current_noise, current
 
@@ -56,7 +56,10 @@ def model(x, y, sim_current, capacitance_array, ID):
         niterations=100,
         batching= True,
         binary_operators=["+","-","*","/","^"],
-        unary_operators=[
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+
+    """             unary_operators=[
             "cos",
             "sin",
             "tan",
@@ -75,9 +78,7 @@ def model(x, y, sim_current, capacitance_array, ID):
             "neg",
             "abs",
             "sign",
-        ],
-        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
-    )
+        ], """
 
     model.fit(X,Y)
 
@@ -91,6 +92,8 @@ def model(x, y, sim_current, capacitance_array, ID):
     with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file:
         best = model.get_best()
         coeff_array = calculate_percent_diff_to_set(model, capacitance_array)
+        coeff_array_np = np.array(coeff_array)
+        bad_equation = 1 if any(coeff_array_np >= 100) else 1 if any(coeff_array_np <= -100) else 0
         writer = csv.writer(file)
         writer.writerow([
                         ID,
@@ -102,6 +105,7 @@ def model(x, y, sim_current, capacitance_array, ID):
                         coeff_array[0],
                         coeff_array[1],
                         coeff_array[2],
+                        bad_equation,
                         ])
 
     #writing model parameters to metadata
@@ -114,26 +118,6 @@ def model(x, y, sim_current, capacitance_array, ID):
         niterations=100,
         batching= True,
         binary_operators=["+","-","*","/","^"],
-        unary_operators=[
-            "cos",
-            "sin",
-            "tan",
-            "asin",
-            "acos",
-            "atan",
-            "sinh",
-            "cosh",
-            "tanh",
-            "asinh",
-            "acosh",
-            "atanh",
-            "exp",
-            "log",
-            "inv",
-            "neg",
-            "abs",
-            "sign",
-        ],
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
                        \n''')
@@ -182,12 +166,13 @@ def generate_plots(dv_dt, current, predicted_current, ID):
 
 #input variables [const,x,x**2] for number of repeats
 number_of_repeats = 10
+add_noise = False
 percentage_noise = 0.1
 capacitance_array = [[np.random.uniform(-100.0,100.0),np.random.uniform(-100.0,100.0),np.random.uniform(-100.0,100.0)] for x in range(number_of_repeats)]
 #capacitance_array = [[1,2,3] for x in range(number_of_repeats)]
 
 #output_filepath = rf"results/20250428-poly-2-{percentage_noise*100}"
-output_filepath = rf"results/20250428-poly-2-{percentage_noise*100}"
+output_filepath = rf"results/20250428-poly-2-{percentage_noise*100 if add_noise else 0}-no-uniary"
 Path(output_filepath).mkdir(parents=True, exist_ok=True)
 with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file:
     writer = csv.writer(file)
@@ -201,10 +186,11 @@ with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file
                 "%diff_to_set_coeff_0",
                 "%diff_to_set_coeff_1",
                 "%diff_to_set_coeff_2",
+                "bad_equation",
                 ])
 
 for i in range(0,len(capacitance_array)):
-    dv_dt, current_noise, current = simulate_data(capacitance_array[i], False, percentage_noise, ID=i)
+    dv_dt, current_noise, current = simulate_data(capacitance_array[i], add_noise, percentage_noise, ID=i)
 
     start_time = time.time()
     select_model = model(dv_dt,current_noise, current, capacitance_array[i], ID=i)
