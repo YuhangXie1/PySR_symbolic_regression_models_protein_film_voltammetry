@@ -1,0 +1,2 @@
+time data: slice start: 550, slice end: -100 
+voltage formula: dv_dt = 17.0298286814874*np.sin(56.644706*time_data) 

@@ -1,8 +1,19 @@
 import numpy as np
 
-coeff_array = [00.0, 0, 0]
-coeff_array_np = np.array(coeff_array)
+X = 2 * np.random.randn(100, 5)
 
-bad_equation = 1 if any(coeff_array_np >= 100) else 1 if any(coeff_array_np <= -100) else 0
 
-print(bad_equation)
+time_start = 0
+time_end = 100
+time_step = 0.1
+
+time_data = np.arange(time_start,time_end,time_step)
+voltage = np.sin(time_data)
+dv_dt = np.cos(time_data)
+
+
+x = np.array(dv_dt)
+a = np.array([1]*len(dv_dt))
+
+X = np.array([a,x,x**2,x**3])
+print (X)

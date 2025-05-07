@@ -1,0 +1,16 @@
+time data: start: 0, end: 100, step: 0.1 
+voltage formula: dv_dv = np.cos(time_data) 
+current formula: current = 51.43743293614082 + 47.85561163606022*dv_dt + 37.989943814630465 * dv_dt**2 + 37.989943814630465 * dv_dt**3 
+current noise: current + np.random.normal(0, 1, len(current))*max(current)*0.02 #percentage noise 
+median noise percentage: 3.561881149390778 % 
+model run ID: 20250502_102805_V1vNJP
+        
+                       model = PySRRegressor(
+        maxsize=30,
+        niterations=300,
+        batching= True,
+        binary_operators=["+","-","*","/"],
+        unary_operators=["square","cube"],
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+                       

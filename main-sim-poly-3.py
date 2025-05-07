@@ -56,48 +56,11 @@ def model(x, y, sim_current, capacitance_array, ID):
         niterations=100,
         batching= True,
         binary_operators=["+","-","*","/","^"],
-        unary_operators=[
-            "cos",
-            "sin",
-            "tan",
-            "asin",
-            "acos",
-            "atan",
-            "sinh",
-            "cosh",
-            "tanh",
-            "asinh",
-            "acosh",
-            "atanh",
-            "exp",
-            "log",
-            "inv",
-            "neg",
-            "abs",
-            "sign",],
+        constraints={'^':[(0,"variable"),
+                     (1, lambda x: x in [1,2,3])
+                     ]},
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
-
-    """             unary_operators=[
-            "cos",
-            "sin",
-            "tan",
-            "asin",
-            "acos",
-            "atan",
-            "sinh",
-            "cosh",
-            "tanh",
-            "asinh",
-            "acosh",
-            "atanh",
-            "exp",
-            "log",
-            "inv",
-            "neg",
-            "abs",
-            "sign",
-        ], """
 
     model.fit(X,Y)
 
@@ -140,28 +103,10 @@ def model(x, y, sim_current, capacitance_array, ID):
         
                        model = PySRRegressor(
         maxsize=30,
-        niterations=100,
+        niterations=300,
         batching= True,
         binary_operators=["+","-","*","/","^"],
-        unary_operators=[
-            "cos",
-            "sin",
-            "tan",
-            "asin",
-            "acos",
-            "atan",
-            "sinh",
-            "cosh",
-            "tanh",
-            "asinh",
-            "acosh",
-            "atanh",
-            "exp",
-            "log",
-            "inv",
-            "neg",
-            "abs",
-            "sign",],
+        constraints="^":(-1,1),
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
                        \n''')
@@ -209,13 +154,12 @@ def generate_plots(dv_dt, current, predicted_current, ID):
 ### main ###
 
 #input variables [const,x,x**2] for number of repeats
-number_of_repeats = 10
-add_noise = False
-percentage_noise = 0.1
+number_of_repeats = 40
+add_noise = True
+percentage_noise = 0.02
 capacitance_array = [[np.random.uniform(-100.0,100.0),np.random.uniform(-100.0,100.0),np.random.uniform(-100.0,100.0),np.random.uniform(-100.0,100.0)] for x in range(number_of_repeats)]
 
-#output_filepath = rf"results/20250428-poly-2-{percentage_noise*100}"
-output_filepath = rf"results/20250428-poly-3-{percentage_noise*100 if add_noise else 0}"
+output_filepath = rf"results/20250501-poly-3-{percentage_noise*100 if add_noise else 0}-40repeats-no-unary-constrained-2"
 Path(output_filepath).mkdir(parents=True, exist_ok=True)
 with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file:
     writer = csv.writer(file)

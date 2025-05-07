@@ -1,0 +1,12 @@
+time data: slice start: 550, slice end: -100 
+voltage formula: dv_dt = 17.0298286814874*np.sin(56.644706*time_data) 
+model run ID: 20250501_142412_Vp0Nuc
+        
+                       model = PySRRegressor(
+        maxsize=30,
+        niterations=100,
+        batching= True,
+        binary_operators=["+","-","*","/","^"],
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+                       
