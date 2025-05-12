@@ -1,0 +1,14 @@
+time data: slice start: 550, slice end: -100 
+voltage formula: v = -0.30279955*cos(228.45365811675*x0 + 0.013544817) - 0.048228793 
+dv/dt formula: dv_dt = 69.1756648736057*sin(228.45365811675*x0 + 0.013544817) 
+model run ID: 20250512_111742_rvmWNo
+    model = PySRRegressor(
+        maxsize=30,
+        niterations=100,
+        batching= True,
+        binary_operators=["+","*"],
+        unary_operators=["sin","cos"],
+        complexity_of_operators={"sin":3, "cos":3},
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+                       

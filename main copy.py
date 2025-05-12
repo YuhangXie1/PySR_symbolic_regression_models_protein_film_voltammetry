@@ -89,20 +89,21 @@ model = PySRRegressor(
     elementwise_loss="loss(prediction, target) = (prediction - target)^2"
 )
 
-run = True
+run = False
 if run:     
     model.fit(X,y)
     print(model)
     print(model.sympy())
     
-voltage_pred = model.predict(X)
+#voltage_pred = model.predict(X)
 end_time = time.time()
 print(f"Time elapsed: {end_time - start_time}")
 
 
 #calculating analytical values
 t_v_2 = np.array(t_v_2)
-voltage_fit_2 = -0.3006429*np.cos(56.644706*t_v_2) - 0.049613677
+#voltage_fit_2 = -0.3006429*np.cos(56.644706*t_v_2) - 0.049613677
+voltage_fit_2 = 0.000165404485499355*np.sin(0.893943594923073*t_v_2 + 1.38349668241203) - 0.0495928256240627
 dv_dt_2 = 17.0298286814874*np.sin(56.644706*t_v_2)
 
 """ t_v_1 = np.array(t_v_1)
@@ -157,7 +158,7 @@ slice_start = 0
 slice_end = -1
 
 axs[0].plot(t_v_2[slice_start:slice_end], y_v_2[slice_start:slice_end], label = "data", color = "cyan")
-axs[0].plot(t_v_2[slice_start:slice_end], voltage_pred[slice_start:slice_end], label = "pred", color = "red", linestyle = "dotted")
+axs[0].plot(t_v_2[slice_start:slice_end], voltage_fit_2[slice_start:slice_end], label = "pred", color = "red", linestyle = "dotted")
 axs[0].set_xlabel("time")
 axs[0].set_ylabel("current")
 axs[0].set_title(f"File 2. MSE = {MSE_2}")

@@ -1,0 +1,2 @@
+params = curve_fit(function, x, y)
+function = A * np.sin(B * x + C) + D
