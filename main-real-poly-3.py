@@ -27,20 +27,17 @@ def loading_data(ID):
     voltage = tuple(data_combined_9["voltage"].iloc[slice_start:slice_end])
     current = tuple(data_combined_9["current"].iloc[slice_start:slice_end])
     freq = tuple(data_combined_9["Freq"].iloc[slice_start:slice_end])
-    
+
     dv_dt = 17.0298286814874*np.sin(56.644706*time_data)
     y_bisect = 1.0335721e-5*dv_dt
-    """     y_reflect = []
+    y_reflect = []
     dv_dt_trunc = []
 
     for i in range(0,len(dv_dt)):
-        if current[i] >= y_bisect[i]:
+        if current[i] <= y_bisect[i]:
             calc = current[i]
             y_reflect.append(calc)
             dv_dt_trunc.append(dv_dt[i])
-        else:
-            calc = current[i] + (2*(y_bisect[i]-current[i]))
-            y_reflect.append(calc) """
 
     #make file structure if does not exist
     Path(os.path.join(output_filepath, str(ID))).mkdir(parents = True, exist_ok = True)
@@ -50,12 +47,12 @@ def loading_data(ID):
         metadata.write(f"time data: slice start: {slice_start}, slice end: {slice_end} \n")
         metadata.write("voltage formula: dv_dt = 17.0298286814874*np.sin(56.644706*time_data) \n")
 
-    return time_data, voltage
+    return voltage, dv_dt, current
 
-def model(dv_dt, current, ID):
+def model(voltage, dv_dt, current, ID):
 
     #shaping variables for pysr
-    X = np.array(dv_dt).reshape(-1,1)
+    X = np.array([voltage,dv_dt]).T
     Y = np.array(current).reshape(-1,1)
 
     #pysr model define
@@ -65,6 +62,7 @@ def model(dv_dt, current, ID):
         batching= True,
         binary_operators=["+","-","*","/","^"],
         unary_operators=["sin","cos"],
+        nested_constraints={"sin": {"sin": 0, "cos": 0}, "cos": {"sin": 0, "cos": 0}},
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
 
@@ -90,13 +88,15 @@ def model(dv_dt, current, ID):
     #writing model parameters to metadata
     with open(os.path.join(output_filepath, str(ID), "metadata.txt"), "a") as metadata:
         metadata.write(f"model run ID: {model.run_id_}")
-        metadata.write(f'''
+        metadata.write('''
         
-                       model = PySRRegressor(
+        model = PySRRegressor(
         maxsize=30,
         niterations=100,
         batching= True,
         binary_operators=["+","-","*","/","^"],
+        unary_operators=["sin","cos"],
+        nested_constraints={"sin": {"sin": 0, "cos": 0}, "cos": {"sin": 0, "cos": 0}},
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
                        \n''')
@@ -108,8 +108,8 @@ def model(dv_dt, current, ID):
 
 def generate_plots(dv_dt, current, predicted_current, ID):
     fig, axs = plt.subplots()
-    axs.scatter(dv_dt, predicted_current, label = "prediction", color = "red")
-    axs.scatter(dv_dt, current, label = "data", color = "cyan")
+    axs.plot(dv_dt, current, label = "data", color = "cyan")
+    axs.plot(dv_dt, predicted_current, label = "prediction", color = "red")
     axs.set_xlabel("dV/dt")
     axs.set_ylabel("current")
     axs.set_title(f"Repeat {ID}")
@@ -118,12 +118,38 @@ def generate_plots(dv_dt, current, predicted_current, ID):
     fig.tight_layout()
     plt.savefig(os.path.join(output_filepath, str(ID), f"fig{ID}.png"))
 
+    fig, axs = plt.subplots()
+    slice_start = 10550
+    slice_end = 20000
+    axs.plot(dv_dt[slice_start:slice_end], predicted_current[slice_start:slice_end], label = "prediction", color = "red")
+    axs.plot(dv_dt[slice_start:slice_end], current[slice_start:slice_end], label = "data", color = "cyan")
+    axs.set_xlabel("dV/dt")
+    axs.set_ylabel("current")
+    axs.set_title(f"Repeat {ID}")
+    axs.legend()
+
+    fig.tight_layout()
+    plt.savefig(os.path.join(output_filepath, str(ID), f"fig{ID}-slice-1.png"))
+
+    fig, axs = plt.subplots()
+    slice_start = 30550
+    slice_end = 40000
+    axs.plot(dv_dt[slice_start:slice_end], predicted_current[slice_start:slice_end], label = "prediction", color = "red")
+    axs.plot(dv_dt[slice_start:slice_end], current[slice_start:slice_end], label = "data", color = "cyan")
+    axs.set_xlabel("dV/dt")
+    axs.set_ylabel("current")
+    axs.set_title(f"Repeat {ID}")
+    axs.legend()
+
+    fig.tight_layout()
+    plt.savefig(os.path.join(output_filepath, str(ID), f"fig{ID}-slice-2.png"))
+
 ### main ###
 
 #input variables
-number_of_repeats = 1
+number_of_repeats = 10
 
-output_filepath = rf"results/20250506-real-test-fit-voltage"
+output_filepath = rf"results/20250508-real-test-fit-dv-and-v/test-2-sin-cos-constrained"
 Path(output_filepath).mkdir(parents=True, exist_ok=True)
 with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file:
     writer = csv.writer(file)
@@ -135,10 +161,10 @@ with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file
                 ])
 
 for i in range(0,number_of_repeats):
-    dv_dt, current = loading_data(i)
+    voltage, dv_dt, current = loading_data(i)
 
     start_time = time.time()
-    select_model = model(dv_dt, current, i)
+    select_model = model(voltage, dv_dt, current, i)
     print (expand(sympify(str(select_model.sympy()))))
     end_time = time.time()
 

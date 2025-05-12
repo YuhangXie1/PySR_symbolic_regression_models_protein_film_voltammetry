@@ -1,0 +1,11 @@
+ID,picked_equation,loss,complexity,LaTex
+0,4.3382227e-9*x0**4*sin(2*x0**2 + 6.9588686*x0),1.5179292e-08,18,\sin{\left(\left(x_{0} + 3.48\right) \left(x_{0} + x_{0}\right) \right)} x_{0} \cdot 4.34 \cdot 10^{-9} x_{0} x_{0} x_{0}
+1,-4.5134957e-8*x0**3*sin(x0)*sin(2.2159808*x0**2) - 4.5134957e-8*x0**3*sin(2.2159808*x0**2),1.5193299e-08,19,\sin{\left(x_{0} x_{0} \left(-2.22\right) \right)} \left(x_{0} \sin{\left(x_{0} \right)} + x_{0}\right) 4.51 \cdot 10^{-8} x_{0} x_{0}
+2,-5.636476e-9*x0**4*sin(2.253933*x0**2)*sin(x0 + 1.6066359),1.4966124e-08,21,\sin{\left(x_{0} x_{0} \cdot 2.25 \right)} x_{0} x_{0} x_{0} x_{0} \sin{\left(x_{0} + 1.61 \right)} \left(-5.64 \cdot 10^{-9}\right)
+3,4.709205e-7*x0**2*sin(2.1800363*x0**2 + 2.1800363*x0),1.5496736e-08,14,\sin{\left(\left(x_{0} + x_{0} x_{0}\right) 2.18 \right)} x_{0} x_{0} \cdot 4.71 \cdot 10^{-7}
+4,-3.4197944e-6*x0*sin(2.2945907*x0**2),1.575651e-08,10,\sin{\left(x_{0} x_{0} \left(-2.29\right) \right)} x_{0} \cdot 3.42 \cdot 10^{-6}
+5,3.8371577e-6*x0*sin(2.2350118*x0**2),1.578147e-08,10,x_{0} \sin{\left(x_{0} x_{0} \cdot 2.23 \right)} 3.84 \cdot 10^{-6}
+6,4.435184e-7*x0**2*sin(2.2354357*x0**2),1.5580493e-08,14,\sin{\left(x_{0} \left(x_{0} + x_{0} \cdot 1.24\right) \right)} x_{0} x_{0} \cdot 4.44 \cdot 10^{-7}
+7,-3.9193986e-9*x0**4*sin(2*x0**2 + 6.6953206*x0),1.5144684e-08,18,x_{0} x_{0} \sin{\left(\left(x_{0} + 3.35\right) \left(x_{0} + x_{0}\right) \right)} x_{0} x_{0} \left(-3.92 \cdot 10^{-9}\right)
+8,-4.4381254e-9*x0**4*sin(2.21449122*x0**2 + x0),1.5234818e-08,22,x_{0} x_{0} \sin{\left(x_{0} \left(x_{0} \cdot 0.214 + x_{0} + x_{0}\right) + x_{0} \right)} \left(-4.44 \cdot 10^{-9}\right) x_{0} x_{0}
+9,4.5954596e-7*x0**2*sin(2.274221*x0**2),1.5520499e-08,12,\sin{\left(x_{0} x_{0} \left(-2.27\right) \right)} x_{0} x_{0} \left(-4.60 \cdot 10^{-7}\right)

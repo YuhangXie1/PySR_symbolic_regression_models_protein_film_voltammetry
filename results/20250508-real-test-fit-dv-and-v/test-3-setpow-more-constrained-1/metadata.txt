@@ -1,0 +1,10 @@
+model 0 time taken = 0:02:44.353489 hr:min:sec 
+model 1 time taken = 0:02:36.776978 hr:min:sec 
+model 2 time taken = 0:02:33.716514 hr:min:sec 
+model 3 time taken = 0:02:24.640731 hr:min:sec 
+model 4 time taken = 0:02:35.058938 hr:min:sec 
+model 5 time taken = 0:02:33.391530 hr:min:sec 
+model 6 time taken = 0:02:34.600329 hr:min:sec 
+model 7 time taken = 0:02:25.207469 hr:min:sec 
+model 8 time taken = 0:02:22.017326 hr:min:sec 
+model 9 time taken = 0:02:25.691842 hr:min:sec 

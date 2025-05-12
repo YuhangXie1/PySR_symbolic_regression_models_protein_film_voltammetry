@@ -165,7 +165,6 @@ def generate_plots(dv_dt, current, predicted_current, ID):
 
 ### main ###
 
-#input variables [const,x,x**2] for number of repeats
 number_of_repeats = 40
 add_noise = True
 percentage_noise = 0.02

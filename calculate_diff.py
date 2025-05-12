@@ -7,20 +7,25 @@ import os
 import datetime
 from pathlib import Path
 import csv
-from sympy import Symbol, sympify, expand
+from sympy import Symbol, sympify, expand, symbols
+from sympy.utilities.lambdify import lambdify
 
 
-""" filepath = "results/20250428-poly-2-no-noise_2"
+filepath = "results/20250508-real-test-fit-dv-and-v/test-3-setpow-more-constrained-1"
 file = pd.read_csv(os.path.join(filepath, "summary.csv"))
-set_equation = file["set_equation"].to_numpy()
 picked_equation = file["picked_equation"].to_numpy()
 
-x0 = Symbol("x0")
-set_equation_sympy = sympify(set_equation)
+x0, x1, x2, x3, x4, x5 = symbols("x0 x1 x2 x3 x4 x5")
+x, dx = symbols("x dx")
 picked_equation_sympy_non_expanded = sympify(picked_equation)
+picked_equation_sympy_non_expanded = picked_equation_sympy_non_expanded.subs([(x0,x),(x1,x**2),(x2,x**3),(x3,dx),(x4,dx**2),(x5,dx**3)])
+
 picked_equation_sympy = [expand(element) for element in picked_equation_sympy_non_expanded]
 
-output = []
+picked_equation_one = picked_equation_sympy[0]
+func = lambdify([x,dx],picked_equation_one,"numpy")
+
+""" output = []
 for i in range(0,len(set_equation_sympy)):
     try:
         picked_coeff_array = [picked_equation_sympy[i].coeff(x0,0), picked_equation_sympy[i].coeff(x0,1), picked_equation_sympy[i].coeff(x0,2)]
@@ -31,18 +36,8 @@ for i in range(0,len(set_equation_sympy)):
     except:
         print(f"{picked_equation_sympy[i]} is not a polynomial")
         output.append([np.nan,np.nan,np.nan])
+"""
 
-
-output_df = pd.DataFrame(output, columns=["%diff_to_set_coeff_0","%diff_to_set_coeff_1","%diff_to_set_coeff_2"])
-
-file = file.drop(columns=["%diff_to_set_coeff_0","%diff_to_set_coeff_1","%diff_to_set_coeff_2"], errors="ignore")
+output_df = pd.DataFrame(picked_equation_sympy, columns=["simplified eqn"])
 new_file = pd.concat([file,output_df], axis=1)
-new_file.to_csv(os.path.join(filepath, "summary.csv")) """
-
-x0 = Symbol("x0")
-eqn = "x0 - (-6.0062575)*x0*x0 + x0*14.809779 - 1*55.2884 - 6.072818"
-eqn_s = sympify(eqn)
-eqn_s_e = expand(eqn_s)
-print(eqn_s)
-print(eqn_s_e)
-print([eqn_s.coeff(x0,0),eqn_s.coeff(x0,1),eqn_s.coeff(x0,2)])
+new_file.to_csv(os.path.join(filepath, "summary_editted.csv"))

@@ -1,0 +1,12 @@
+time data: slice start: 550, slice end: -100 
+model run ID: 20250509_171654_u94IRj
+        model = PySRRegressor(
+        maxsize=30,
+        niterations=100,
+        batching= True,
+        binary_operators=["+","*"],
+        unary_operators=["sin"],
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+
+                       

@@ -1,0 +1,16 @@
+time data: slice start: 550, slice end: -100 
+voltage formula: dv_dt = 17.0298286814874*np.sin(56.644706*time_data) 
+model run ID: 20250507_220329_CQ1wkd
+        maxsize=30,
+        niterations=100,
+        batching= True,
+        binary_operators=["+","*"],
+        constraints={
+        "*": [[(0, "constant"), (1, "variable")],[(0, "variable"), (1, "constant")]]
+        },
+        nested_constraints= {
+            "*": {"*":0}
+        },
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+                       

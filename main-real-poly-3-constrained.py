@@ -34,13 +34,14 @@ def loading_data(ID):
     dv_dt_trunc = []
 
     for i in range(0,len(dv_dt)):
-        if current[i] >= y_bisect[i]:
+        if current[i] <= y_bisect[i]:
             calc = current[i]
             y_reflect.append(calc)
-            #dv_dt_trunc.append(dv_dt[i])
+            dv_dt_trunc.append(dv_dt[i])
         else:
-            calc = current[i] + (2*(y_bisect[i]-current[i]))
-            y_reflect.append(calc)
+            #calc = current[i] + (2*(y_bisect[i]-current[i]))
+            #y_reflect.append(calc)
+            pass
 
     #make file structure if does not exist
     Path(os.path.join(output_filepath, str(ID))).mkdir(parents = True, exist_ok = True)
@@ -50,7 +51,7 @@ def loading_data(ID):
         metadata.write(f"time data: slice start: {slice_start}, slice end: {slice_end} \n")
         metadata.write("voltage formula: dv_dt = 17.0298286814874*np.sin(56.644706*time_data) \n")
 
-    return dv_dt, y_reflect
+    return dv_dt_trunc, y_reflect
 
 def model(dv_dt, current, ID):
 
@@ -131,9 +132,9 @@ def generate_plots(dv_dt, current, predicted_current, ID):
 ### main ###
 
 #input variables
-number_of_repeats = 1
+number_of_repeats = 10
 
-output_filepath = rf"results/20250501-real-test-reflect-constrained-2"
+output_filepath = rf"results/20250507-real-test-below-constrained-2"
 Path(output_filepath).mkdir(parents=True, exist_ok=True)
 with open(os.path.join(output_filepath, "summary.csv"), "a", newline='') as file:
     writer = csv.writer(file)

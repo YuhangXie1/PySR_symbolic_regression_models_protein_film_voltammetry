@@ -1,0 +1,3 @@
+,complexity,loss,equation,score,sympy_format,lambda_format
+0,1,0.044952355,-0.049618557,0.0,-0.0496185570000000,PySRFunction(X=>-0.0496185570000000)
+1,6,0.044951744,x0 * sin(-0.049648214 / x0),2.71845224769207e-06,x0*sin(-0.049648214/x0),PySRFunction(X=>x0*sin(-0.049648214/x0))
