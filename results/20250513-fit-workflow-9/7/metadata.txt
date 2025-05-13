@@ -1,0 +1,13 @@
+model run ID: 20250513_170341_YON7Gq
+        X = np.array([voltage, voltage**2, voltage**3, dv_dt, dv_dt**2, dv_dt**3]).T
+        Y = np.array(current).reshape(-1,1)
+                       
+        model = PySRRegressor(
+        maxsize=30,
+        niterations=100,
+        batching= True,
+        binary_operators=["+","*"],
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+
+                       

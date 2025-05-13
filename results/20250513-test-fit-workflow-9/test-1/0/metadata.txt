@@ -1,0 +1,10 @@
+model run ID: 20250513_135440_9boxR0
+        model = PySRRegressor(
+        maxsize=30,
+        niterations=100,
+        batching= True,
+        binary_operators=["+","*"],
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+
+                       

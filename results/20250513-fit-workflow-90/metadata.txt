@@ -1,0 +1,16 @@
+time data: slice start: 550, slice end: -100 
+Voltage-time fitting
+params = curve_fit(function, x, y)
+function = A * np.sin(B * x + C) + D
+voltage formula: v = 0.298815210502691*sin(569.250688138558*x0 - 1.51734742234343) - 0.0496876674299292 where x0 = t 
+dv/dt formula: dv_dt = 170.100764204925*cos(569.250688138558*x0 - 1.51734742234343) where x0 = t  
+model 0 time taken = 0:00:28.485980 hr:min:sec 
+model 1 time taken = 0:00:19.760442 hr:min:sec 
+model 2 time taken = 0:00:20.140373 hr:min:sec 
+model 3 time taken = 0:00:20.313815 hr:min:sec 
+model 4 time taken = 0:00:20.399705 hr:min:sec 
+model 5 time taken = 0:00:19.541680 hr:min:sec 
+model 6 time taken = 0:00:22.881315 hr:min:sec 
+model 7 time taken = 0:00:23.591747 hr:min:sec 
+model 8 time taken = 0:00:21.637015 hr:min:sec 
+model 9 time taken = 0:00:20.231764 hr:min:sec 
