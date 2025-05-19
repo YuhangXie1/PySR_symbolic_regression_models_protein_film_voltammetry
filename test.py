@@ -49,24 +49,48 @@ def fourier_transform(current, time_data, Hz, band_size, desired_harmonic):
     return freqs, ft, filtered_ft, inverseft
     
 band_size=0.1
-desired_harmonic=1
+desired_harmonic=4
 freqs, ft, filtered_ft, inverseft = fourier_transform(current, time_data, Hz, band_size, desired_harmonic)
 freqs_pred, ft_pred, filtered_ft_pred, inverseft_pred = fourier_transform(current_pred, time_data, Hz, band_size, desired_harmonic)
 
-fig, axs = plt.subplots(2)
-axs[0].plot(freqs, ft**2, color = "cyan", label="real")
-axs[0].plot(freqs, filtered_ft**2, color = "blue", label="real select")
-axs[0].plot(freqs_pred, ft_pred**2, color = "orange", linestyle = "dotted", label="pred")
-axs[0].plot(freqs_pred, filtered_ft_pred**2, color = "magenta", linestyle = "dotted", label="pred select")
-axs[0].set_xlabel("frequency")
-axs[0].set_ylabel("magnitude")
-axs[0].set_title(f"File {Hz}, harmonic {desired_harmonic}, fft")
+fig, axs = plt.subplots()
+axs.plot(freqs, np.log10(ft**2), color = "blue", label="real")
+axs.plot(freqs, np.log10(ft_pred**2), color = "red", label="pred")
+axs.set_xlim(0,400)
+axs.set_ylim(-4, 3)
+axs.set_xlabel("frequency")
+axs.set_ylabel("log10 ft^2")
+axs.set_title(f"File {Hz}, all harmonics, fft")
 
-axs[1].plot(voltage, inverseft, label="real")
-axs[1].plot(voltage, inverseft_pred, label="pred", linestyle = "dotted")
-axs[1].set_xlabel("voltage")
-axs[1].set_ylabel("current")
-axs[1].set_title(f"File {Hz}, harmonic {desired_harmonic}, ifft")
+fig.tight_layout()
+plt.show()
+
+
+fig, axs = plt.subplots()
+axs.plot(freqs, np.log10(filtered_ft**2), color = "blue", label="real")
+axs.plot(freqs, np.log10(filtered_ft_pred**2), color = "red", label="pred")
+axs.set_xlim(0)
+#axs.set_ylim(-4, 3)
+axs.set_xlabel("frequency")
+axs.set_ylabel("log10 ft^2")
+axs.set_title(f"File {Hz}, harmonic {desired_harmonic}, fft")
+
+fig.tight_layout()
+plt.show()
+
+""" axs[1].plot(freqs, np.log10(filtered_ft**2), color = "blue", label="real select")
+axs[1].plot(freqs, np.log10(filtered_ft_pred**2), color = "red", label="pred select")
+axs[1].set_xlim(0,400)
+axs[1].set_ylim(-4, 3)
+axs[1].set_xlabel("frequency")
+axs[1].set_ylabel("log10 ft^2")
+axs[1].set_title(f"File {Hz}, harmonic {desired_harmonic}, fft")
+
+axs[2].plot(voltage, inverseft, label="real")
+axs[2].plot(voltage, inverseft_pred, label="pred")
+axs[2].set_xlabel("voltage")
+axs[2].set_ylabel("current")
+axs[2].set_title(f"File {Hz}, harmonic {desired_harmonic}, ifft") """
 
 #axs.plot()
 
@@ -82,5 +106,3 @@ plt.plot(freqs, new_ft)
 inversefft=np.fft.ifft(new_ft)
 plt.plot(time, inversefft) """
 
-fig.tight_layout()
-plt.show()
