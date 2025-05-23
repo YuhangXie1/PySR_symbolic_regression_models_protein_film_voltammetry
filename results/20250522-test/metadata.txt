@@ -1,0 +1,9 @@
+9Hz voltage fit. Time data: slice start: 550, slice end: -100 
+36Hz voltage fit. Time data: slice start: 550, slice end: -100 
+45Hz voltage fit. Time data: slice start: 550, slice end: -100 
+54Hz voltage fit. Time data: slice start: 550, slice end: -100 
+63Hz voltage fit. Time data: slice start: 550, slice end: -100 
+72Hz voltage fit. Time data: slice start: 550, slice end: -100 
+81Hz voltage fit. Time data: slice start: 550, slice end: -100 
+90Hz voltage fit. Time data: slice start: 550, slice end: -100 
+99Hz voltage fit. Time data: slice start: 550, slice end: -100 

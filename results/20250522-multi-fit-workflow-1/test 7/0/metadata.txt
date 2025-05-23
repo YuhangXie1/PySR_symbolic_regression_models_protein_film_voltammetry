@@ -1,0 +1,14 @@
+model run ID: 20250523_114013_kBsBeE
+    X = np.array([voltage, dv_dt, freq]).T
+    Y = np.array(current).reshape(-1,1)
+
+    #pysr model definition
+    model = PySRRegressor(
+        maxsize=50,
+        niterations=300,
+        batching= True,
+        binary_operators=["+","*","^"],
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+
+                       

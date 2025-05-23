@@ -20,19 +20,43 @@ def calculate_MSE_complex(y, y_pred):
     mse = sum(np.abs(y_pred - y)**2)
     return mse
 
-Hz = 36
-data_volt = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
-data_amp = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_current", sep="\t", names = ["time","current"])
-data_combined = data_volt.join(data_amp["current"])
+def load_data(Hz):
+    """
+    Returns numpy arrays of time_data, voltage, current and frequency for a set of data files
+    """
+    loc=r".\Data_for_eq_learning"
 
-#slicing data to remove start and end noise. Putting data into tuples
-slice_start = 550
-slice_end = -100
-time_data = np.array(data_combined["time"].iloc[slice_start:slice_end])
-voltage = np.array(data_combined["voltage"].iloc[slice_start:slice_end])
-current = np.array(data_combined["current"].iloc[slice_start:slice_end])
+    #loading data
+    data_volt = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
+    data_amp = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_current", sep="\t", names = ["time","current"])
+    data_combined = data_volt.join(data_amp["current"])
+    data_combined.insert(0, "Freq", Hz)
 
-x, dx, x0 = symbols("x dx x0")
+    #slicing data to remove start and end noise. Putting data into tuples
+    slice_start = 550
+    slice_end = -100
+    time_data = np.array(data_combined["time"].iloc[slice_start:slice_end])
+    voltage = np.array(data_combined["voltage"].iloc[slice_start:slice_end])
+    current = np.array(data_combined["current"].iloc[slice_start:slice_end])
+    freq = np.array(data_combined["Freq"].iloc[slice_start:slice_end])
+
+    return time_data, voltage, current, freq, [slice_start, slice_end]
+
+
+
+#####
+files_freq = [36, 45]
+
+combined_data_array = np.empty((1,4))
+
+for Hz in files_freq:
+    time_data, voltage, current, freq, slice_array = load_data(Hz)
+    combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, current, freq]).T],0)
+
+combined_data_array = np.delete(combined_data_array, (0), axis=0)
+print(combined_data_array)
+
+""" x, dx, x0 = symbols("x dx x0")
 voltage_eqn = sympify("0.299894563526963*sin(228.4492878688*x0 - 1.55129181348585) - 0.0496859862564122")
 dv_dt_func = diff(voltage_eqn, x0)
 dv_dt_lambda = lambdify(x0,dv_dt_func)
@@ -102,14 +126,6 @@ plt.show()
 
 
 #saving figures 1 by 1
-""" output_filepath = rf"results/20250520-test/"
-Path(os.path.join(output_filepath)).mkdir(parents=True, exist_ok=True)
-with open(os.path.join(output_filepath, f"summary.csv"), "a", newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(["Harmonic",
-                    "MSE_freq",
-                    "MSE_inverseft",
-                    ]) """
 
 
 
@@ -142,27 +158,6 @@ for harmonic in range(1,10):
     data = np.array([freqs,log_ft_filtered,log_ft_filtered_pred]).T
     data_new = np.array([row for row in data if np.isfinite(row[1]) and np.isfinite(row[2])])
 
-    """     ft_dict = {}
-    ft_dict_pred = {}
-    for i, item in enumerate(freqs):
-        ft_dict[item] = log_ft_filtered[i]
-        ft_dict_pred[item] = log_ft_filtered_pred[i]
-
-    ft_dict_new = deepcopy(ft_dict)
-    ft_dict_new_pred = deepcopy(ft_dict_pred)
-    for key, item in ft_dict.items():
-        if np.isfinite(item) == False:
-            ft_dict_new.pop(key)
-
-    for key, item in ft_dict_pred.items():
-        if np.isfinite(item) == False:
-            ft_dict_new_pred.pop(key)
-
-    new_ft = np.array([float(item) for item in ft_dict_new.values()])
-    new_freq = np.array([float(item) for item in ft_dict_new.keys()])
-
-    new_ft_pred = np.array([float(item) for item in ft_dict_new_pred.values()])
-    new_freq_pred = np.array([float(item) for item in ft_dict_new_pred.keys()]) """
 
     MSE_dict[harmonic] = calculate_MSE(data_new[:,1],data_new[:,2])
     ax1.scatter(data_new[:,0], data_new[:,1], color = "blue", label="real")
@@ -192,12 +187,7 @@ for harmonic in range(1,10):
 
     log_ft_filtered[~np.isfinite(log_ft_filtered)] = 0
     log_ft_filtered_pred[~np.isfinite(log_ft_filtered_pred)] = 0
-    """     with open(os.path.join(output_filepath, f"summary.csv"), "a", newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([harmonic,
-                        calculate_MSE_complex(log_ft_filtered,log_ft_filtered_pred),
-                        calculate_MSE_complex(inverseft,inverseft_pred),
-                        ]) """
+
 print(MSE_dict)
 
 fig1.legend(handles_1, labels_1, loc='lower right')
@@ -218,5 +208,5 @@ fig3.supylabel("Current")
 fig3.suptitle(f"File {Hz}Hz harmonics in voltage domain")
 fig3.tight_layout()
 plt.show()
-
+ """
 
