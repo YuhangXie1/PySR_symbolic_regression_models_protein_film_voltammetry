@@ -235,10 +235,10 @@ def fit_voltage_eqn(Hz):
     return voltage_eqn, dv_dt_eqn
 
 ### main ###
-output_filepath = rf"results/20250523-multi-fit-workflow-2/test-1-36-45-54/"
+output_filepath = rf"results/20250523-multi-fit-workflow-2/test-3-36,99/"
 number_of_repeats = 10
 #files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
-files_freq = [36, 45, 54]
+files_freq = [36, 99]
 
 #initialising headers
 Path(os.path.join(output_filepath)).mkdir(parents = True, exist_ok = True)
