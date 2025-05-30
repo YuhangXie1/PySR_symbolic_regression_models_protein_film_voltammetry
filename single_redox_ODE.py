@@ -19,7 +19,7 @@ A = 1e-4        # m^2           #Electrode area
 k0 = 1e-6       # 1/s           #Standard rate constant
 a = 0.3         #               #Alpha = transfer coefficient, 0 <= a <= 1
 E0 = 0          # V             #Potential at equilibrium
-E_app = 1      # V             #Applied potential
+E_app = -1      # V             #Applied potential
 
 kf = k0 * np.exp(-a*f*(E_app-E0)) #Forward reaction rate constant
 kb = k0 * np.exp((1-a)*f*(E_app-E0)) #Backward reaction rate constant
@@ -68,7 +68,5 @@ axs.plot(t_eval, analytical_sol[1], label = "[R] analytical", color = "magenta",
 #axs.plot(solution.t, calc_current(solution.y[0],solution.y[1]), label = "current", color = "green")
 axs.legend()
 plt.show()
-
-
 
 
