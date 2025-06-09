@@ -1,5 +1,5 @@
 import numpy as np
-from sympy import Symbol, sympify, symbols, diff
+from sympy import Symbol, sympify, symbols, diff, Wild
 import sympy as sp
 from sympy.utilities.lambdify import lambdify
 from scipy.optimize import curve_fit
