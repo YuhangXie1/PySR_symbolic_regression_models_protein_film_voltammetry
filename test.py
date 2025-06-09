@@ -54,159 +54,73 @@ for Hz in files_freq:
     combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, current, freq]).T],0)
 
 combined_data_array = np.delete(combined_data_array, (0), axis=0)
-print(combined_data_array)
-
-""" x, dx, x0 = symbols("x dx x0")
-voltage_eqn = sympify("0.299894563526963*sin(228.4492878688*x0 - 1.55129181348585) - 0.0496859862564122")
-dv_dt_func = diff(voltage_eqn, x0)
-dv_dt_lambda = lambdify(x0,dv_dt_func)
-dv_dt = dv_dt_lambda(time_data)
-
-current_pred_eqn = 1.83479321254227e-6*dx*x**3 - 7.77746142237813e-7*dx*x**2 - 7.77746142237813e-7*dx*x + 7.5642693e-6*dx + 0.00060018763*x**2 + 0.0010604324*x + 2.4237355e-5
-#current_pred_eqn = -1.7188134e-9*dx**2*x - 1.3682722e-5*dx*x**4 - 7.6412488721775e-7*dx*x + 7.5565454e-6*dx + 0.00059690495*x**2 + 0.0010617722*x + 2.4272074e-5
-current_pred_lambda = lambdify([x, dx], current_pred_eqn)
-current_pred = current_pred_lambda(voltage, dv_dt)
+#print(combined_data_array)
 
 
 
 
 
+#loading data
+data = pd.read_csv(f"Data_for_eq_learning/20250609/20250609-blank-PSV_36Hz.csv", header = 0)
 
-def fourier_transform(current, time_data):
-   
-    ft=np.fft.fft(current)
-    freqs=np.fft.fftfreq(len(time_data), time_data[1]-time_data[0])
+#slicing data to remove start and end noise. Putting data into tuples
+slice_start = 0
+slice_end = -1
+time_data_new = np.array(data["x"].iloc[slice_start:slice_end])
+voltage_new = np.array(data["z"].iloc[slice_start:slice_end])
+current_new = np.array(data["y"].iloc[slice_start:slice_end])
 
-    return freqs, ft
-    
-def filter_fft(freqs, ft, band_size, Hz, desired_harmonic):
-    freq_loc=desired_harmonic*int(Hz)
-    filtered_ft=np.zeros(len(ft), dtype="complex")
-    for sign in [-1, 1]:
-        ft_loc=np.where((freqs>sign*freq_loc-(band_size*int(Hz))) & (freqs<sign*freq_loc+(band_size*int(Hz))))
-        filtered_ft[ft_loc]=ft[ft_loc]
-    
-    return filtered_ft
+time_data_old, voltage_old, current_old, freq, slice = load_data(36)
 
-band_size=0.1
-desired_harmonic=9
-freqs, ft = fourier_transform(current, time_data)
-freqs_pred, ft_pred = fourier_transform(current_pred, time_data)
 
-ft = np.abs(ft)
-ft_pred = np.abs(ft_pred)
-
-ft_filtered = filter_fft(freqs, ft, band_size, Hz, desired_harmonic)
-ft_filtered_pred = filter_fft(freqs_pred, ft_pred, band_size, Hz, desired_harmonic)
-
-inverseft=np.fft.ifft(ft_filtered)
-inverseft_pred=np.fft.ifft(ft_filtered_pred)
-
-log_ft = np.log10(ft)
-log_ft_pred = np.log10(ft_pred)
-
-log_ft[~np.isfinite(log_ft)] = 0
-log_ft_pred[~np.isfinite(log_ft_pred)] = 0
-
-MSE_norm = calculate_MSE(ft, ft_pred)
-MSE_log = calculate_MSE(log_ft, log_ft_pred)
-
-fig, axs = plt.subplots()
-axs.plot(freqs, np.log10(ft), color = "blue", label="real")
-axs.plot(freqs_pred, np.log10(ft_pred), color = "red", label="pred")
-axs.set_xlim(0,400)
-axs.set_ylim(-4, 3)
-axs.set_xlabel("Frequency")
-axs.set_ylabel("log10 ft")
-axs.set_title(f"File {Hz}Hz, all harmonics, \n MSE {MSE_norm}, \n MSE log {MSE_log}")
+""" fig, axs = plt.subplots()
+axs.plot(voltage_old, current_old, label = "Old", color = "blue")
+axs.plot(voltage_new, current_new, label = "Today", color = "red")
+axs.set_xlabel("Voltage")
+axs.set_ylabel("Current")
 axs.legend()
+fig.tight_layout() """
 
-fig.tight_layout()
-plt.show()
+sinusoid_new = 0.3*np.sin(2*np.pi*36*time_data_new - np.pi/2) - 0.05
+sinusoid_old = 0.3*np.sin(2*np.pi*36*time_data_old - np.pi/2) - 0.05
 
-
-#saving figures 1 by 1
-
-
-
-
-#Plotting 3 by 3 figures
-
-fig1, axs1 = plt.subplots(3,3)
-axs1 = axs1.flatten()
-
-fig2, axs2 = plt.subplots(3,3)
-axs2 = axs2.flatten()
-
-fig3, axs3 = plt.subplots(3,3)
-axs3 = axs3.flatten()
-
-MSE_dict = {}
-
-for harmonic in range(1,10):
-    ax1 = axs1[harmonic - 1]
-
-    ft_filtered = filter_fft(freqs, ft, band_size, Hz, harmonic)
-    ft_filtered_pred = filter_fft(freqs_pred, ft_pred, band_size, Hz, harmonic)
-    
-    ft_filtered_abs = np.abs(ft_filtered)
-    ft_filtered_pred_abs = np.abs(ft_filtered_pred)
-
-    log_ft_filtered = np.log10(ft_filtered_abs)
-    log_ft_filtered_pred = np.log10(ft_filtered_pred_abs)
-
-    data = np.array([freqs,log_ft_filtered,log_ft_filtered_pred]).T
-    data_new = np.array([row for row in data if np.isfinite(row[1]) and np.isfinite(row[2])])
+voltage_pred_old = 0.299894563526984*np.sin(228.449287868794*time_data_old - 1.55129181346913) - 0.0496859862566539
+sinusoid_old_2 = 0.3*np.sin(228.449287868794*time_data_old - np.pi/2) - 0.05
+sinusoid_old_3 = 0.3*np.sin(228.449287868794*time_data_old - 1.55129181346913) - 0.05
+sinusoid_old_4 = 0.3*np.sin((np.pi*2*36+2.2546168103288835)*time_data_old - (np.pi/2 -0.019504513325766526)) - 0.05
 
 
-    MSE_dict[harmonic] = calculate_MSE(data_new[:,1],data_new[:,2])
-    ax1.scatter(data_new[:,0], data_new[:,1], color = "blue", label="real")
-    ax1.scatter(data_new[:,0], data_new[:,2], color = "red", label="pred")
-    #ax1.set_xlim(harmonic*int(Hz)-harmonic*int(Hz)*0.03, harmonic*int(Hz)+harmonic*int(Hz)*0.03)
-    ax1.set_title(f"Harmonic {harmonic}")
+print(228.449287868794 - np.pi*2*36)
+print(1.55129181346913 - np.pi/2)
 
-    handles_1, labels_1 = ax1.get_legend_handles_labels()
-
-    ax2 = axs2[harmonic - 1]
-
-    inverseft=np.fft.ifft(ft_filtered)
-    inverseft_pred=np.fft.ifft(ft_filtered_pred)
-
-    ax2.plot(time_data, inverseft, color = "blue", label="real")
-    ax2.plot(time_data, inverseft_pred, color = "red", label="pred")
-    ax2.set_title(f"Harmonic {harmonic}")
-
-    handles_2, labels_2 = ax2.get_legend_handles_labels()
-
-    ax3 = axs3[harmonic - 1]
-    ax3.plot(voltage, inverseft, color = "blue", label="real")
-    ax3.plot(voltage, inverseft_pred, color = "red", label="pred")
-    ax3.set_title(f"Harmonic {harmonic}")
-
-    handles_3, labels_3 = ax3.get_legend_handles_labels()
-
-    log_ft_filtered[~np.isfinite(log_ft_filtered)] = 0
-    log_ft_filtered_pred[~np.isfinite(log_ft_filtered_pred)] = 0
-
-print(MSE_dict)
-
-fig1.legend(handles_1, labels_1, loc='lower right')
-fig1.supxlabel("Frequency (Hz)")
-fig1.supylabel("Log10 ft^2")
-fig1.suptitle(f"File {Hz}Hz harmonics in freq domain")
-fig1.tight_layout()
-
-fig2.legend(handles_2, labels_2, loc='lower right')
-fig2.supxlabel("Time")
-fig2.supylabel("Current")
-fig2.suptitle(f"File {Hz}Hz harmonics in time domain")
+fig2, axs2 = plt.subplots()
+#axs2.plot(time_data_old, voltage_old, label = "Old", color = "blue")
+#axs2.plot(time_data_new, voltage_new, label = "Today", color = "red")
+#axs2.plot(time_data_old, sinusoid_old, label = "Artificial", color = "green", linestyle = "dashed")
+#axs2.plot(time_data_new, sinusoid_new, label = "Artificial", color = "green", linestyle = "dashed")
+axs2.plot(time_data_old, voltage_old, label = "real", color = "blue")
+axs2.plot(time_data_old, voltage_pred_old, label = "pred", color = "red", linestyle = "dotted")
+axs2.set_xlabel("Time")
+axs2.set_ylabel("Voltage")
+axs2.legend()
 fig2.tight_layout()
 
-fig3.legend(handles_3, labels_3, loc='lower right')
-fig3.supxlabel("Voltage")
-fig3.supylabel("Current")
-fig3.suptitle(f"File {Hz}Hz harmonics in voltage domain")
-fig3.tight_layout()
-plt.show()
- """
+""" fig3, axs3 = plt.subplots()
+axs3.plot(time_data_old, current_old, label = "Old", color = "blue")
+axs3.plot(time_data_new, current_new, label = "Today", color = "red")
+axs3.set_xlabel("Time")
+axs3.set_ylabel("Current")
+axs3.legend()
+fig3.tight_layout() """
 
+
+
+fig4, axs4 = plt.subplots()
+axs4.plot(voltage_old, voltage_pred_old, label = "old", color = "blue")
+axs4.plot(voltage_old, sinusoid_old_4, label = "pred", color = "red", linestyle = "dotted")
+axs4.set_xlabel("Voltage real")
+axs4.set_ylabel("Voltage pred")
+axs4.legend()
+fig4.tight_layout()
+
+plt.show()
