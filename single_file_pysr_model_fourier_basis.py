@@ -74,66 +74,28 @@ def fit_sin(tt, yy):
     #lambdifying
     x0 = Symbol("x0")
     voltage_equation = A*sp.sin(w*x0 + p) + c
-    voltage_equation_func = lambdify(x0, voltage_equation)
-    y_pred = voltage_equation_func(tt)
 
-    Path(os.path.join(output_filepath)).mkdir(parents=True, exist_ok=True)
-    with open(os.path.join(output_filepath, "summary_voltage_model.csv"), "a", newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([
-                        calculate_MSE(yy, y_pred),
-                        voltage_equation,
-                        A,
-                        w,
-                        p,
-                        c,
-                        ])
-        
-    #writing model parameters to metadata
-    with open(os.path.join(output_filepath, "metadata.txt"), "a") as metadata:
-        metadata.write("Voltage-time fitting\n")
-        metadata.write("params = curve_fit(function, x, y)\n")
-        metadata.write("function = A * np.sin(B * x + C) + D\n")
-
-    #voltage time graph
-    fig, axs = plt.subplots(3)
-    axs[0].plot(tt, yy, label = "data", color = "cyan")
-    axs[0].plot(tt, y_pred, label = "prediction", color = "red")
-    axs[0].set_xlabel("time")
-    axs[0].set_ylabel("voltage")
-    axs[0].set_title(f"Voltage vs time. Whole. ")
-    axs[0].legend()
-
-    slice_start = 10550
-    slice_end = 20000
-    axs[1].plot(tt[slice_start:slice_end], yy[slice_start:slice_end], label = "data", color = "cyan")
-    axs[1].plot(tt[slice_start:slice_end], y_pred[slice_start:slice_end], label = "pred", color = "red", linestyle = "dotted")
-    axs[1].set_xlabel("time")
-    axs[1].set_ylabel("voltage")
-    axs[1].set_title(f"Voltage vs time. Slice {slice_start}-{slice_end}.")
-    axs[1].legend()
-
-    slice_start = 30550
-    slice_end = 40000
-    axs[2].plot(tt[slice_start:slice_end], yy[slice_start:slice_end], label = "data", color = "cyan")
-    axs[2].plot(tt[slice_start:slice_end], y_pred[slice_start:slice_end], label = "pred", color = "red", linestyle = "dotted")
-    axs[2].set_xlabel("time")
-    axs[2].set_ylabel("voltage")
-    axs[2].set_title(f"Voltage vs time. Slice {slice_start}-{slice_end}.")
-    axs[2].legend()
-
-    fig.tight_layout()
-    plt.savefig(os.path.join(output_filepath, "fig-voltage-time.png"))
-
-    return voltage_equation
+    return voltage_equation, [A, w, p, c]
 
 
-def model(voltage, dv_dt, current, ID):
+def model(time_data, coeff_array, dv_dt, current, ID):
     """
     Runs a PySR model to fit ([voltage, dv_dt], current) and returns the best model.
     """
 
-    X = np.array([voltage, voltage**2, voltage**3, dv_dt, dv_dt**2, dv_dt**3]).T
+    #X = np.array([voltage, voltage**2, voltage**3, dv_dt, dv_dt**2, dv_dt**3]).T
+    A = np.full((1,len(time_data)), coeff_array[0])[0]
+    w = np.full((1,len(time_data)), coeff_array[1])[0]
+    p = np.full((1,len(time_data)), coeff_array[2])[0]
+    c = np.full((1,len(time_data)), coeff_array[3])[0]
+
+    X = np.array([A, w, p, c,
+                  np.sin(time_data * w), np.cos(time_data * w),
+                    np.sin(time_data * w *2), np.cos(time_data * w * 2),
+                    np.sin(time_data * w *3), np.cos(time_data * w * 3),
+                    np.sin(time_data * w *4), np.cos(time_data * w * 4),
+                    np.sin(time_data * w *5), np.cos(time_data * w * 5),
+                  ]).T
     Y = np.array(current).reshape(-1,1)
 
     #pysr model definition
@@ -153,8 +115,18 @@ def model(voltage, dv_dt, current, ID):
     with open(os.path.join(output_filepath, str(ID), "metadata.txt"), "a") as metadata:
         metadata.write(f"model run ID: {model.run_id_}")
         metadata.write('''
-        X = np.array([voltage, voltage**2, voltage**3, dv_dt, dv_dt**2, dv_dt**3]).T
-        Y = np.array(current).reshape(-1,1)
+    A = np.full((1,len(time_data), coeff_array[0]))
+    w = np.full((1,len(time_data), coeff_array[1]))
+    p = np.full((1,len(time_data), coeff_array[2]))
+    c = np.full((1,len(time_data), coeff_array[3]))
+    X = np.array([A, w, p, c,
+                  np.sin(time_data * w), np.cos(time_data * w),
+                    np.sin(time_data * w *2), np.cos(time_data * w * 2),
+                    np.sin(time_data * w *3), np.cos(time_data * w * 3),
+                    np.sin(time_data * w *4), np.cos(time_data * w * 4),
+                    np.sin(time_data * w *5), np.cos(time_data * w * 5),
+                  ]).T
+    Y = np.array(current).reshape(-1,1)
                        
         model = PySRRegressor(
         maxsize=30,
@@ -173,10 +145,19 @@ def model(voltage, dv_dt, current, ID):
     with open(os.path.join(output_filepath, "summary_current_model.csv"), "a", newline='') as file:
         best = model.get_best()
         expanded_form = expand(sympify(str(model.sympy())))
-        x0, x1, x2, x3, x4, x5 = symbols("x0 x1 x2 x3 x4 x5")
-        x, dx = symbols("x dx") 
-        substituted_form = expand(expanded_form.subs([(x0,x),(x1,x**2),(x2,x**3),(x3,dx),(x4,dx**2),(x5,dx**3)]))
+        x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13 = symbols("x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13")
+        A,w,p,c,t = symbols("A,w,p,c,t")
 
+        substituted_form = expand(expanded_form.subs(
+                [(x0,A), (x1,w), (x2,p), (x3,c),
+                  (x4,sp.sin(t * w)), (x5,sp.cos(t * w)),
+                    (x6,sp.sin(t * w * 2)), (x7,sp.cos(t * w * 2)),
+                    (x8,sp.sin(t * w * 3)), (x9,sp.cos(t * w * 3)),
+                    (x10,sp.sin(t * w * 4)), (x11,sp.cos(t * w * 4)),
+                    (x12,sp.sin(t * w * 5)), (x13,sp.cos(t * w * 5)),
+                  ]))
+
+        
         writer = csv.writer(file)
         writer.writerow([
                         ID,
@@ -238,7 +219,7 @@ def model(voltage, dv_dt, current, ID):
 #input variables
 number_of_repeats = 10
 Hz = 36
-output_filepath = rf"results/20250530-fit-workflow/{Hz}"
+output_filepath = rf"results/20250610-fit-workflow-fourier-basis/{Hz}"
 
 Path(output_filepath).mkdir(parents=True, exist_ok=True)
 with open(os.path.join(output_filepath, "summary_current_model.csv"), "a", newline='') as file:
@@ -255,30 +236,37 @@ with open(os.path.join(output_filepath, "summary_current_model.csv"), "a", newli
 with open(os.path.join(output_filepath, "summary_voltage_model.csv"), "a", newline='') as file:
     writer = csv.writer(file)
     writer.writerow([
-                "MSE",
-                "picked_equation",
+                "voltage_equation",
+                "dv_dt_equation",
                 "coeff A",
-                "coeff B",
-                "coeff C",
-                "coeff D",
+                "coeff w",
+                "coeff p",
+                "coeff c",
                 ])
 
 time_data, voltage, current, freq = load_data(Hz)
 
 x0 = Symbol("x0")
-voltage_eqn = fit_sin(time_data, voltage)
+voltage_eqn, coeff_array = fit_sin(time_data, voltage)
 dv_dt_func = diff(voltage_eqn, x0)
 dv_dt_lambda = lambdify(x0,dv_dt_func)
 dv_dt = dv_dt_lambda(time_data)
 
-with open(os.path.join(output_filepath, "metadata.txt"), "a") as metadata:
-    metadata.write(f"voltage formula: v = {str(voltage_eqn)} where x0 = t \n")
-    metadata.write(f"dv/dt formula: dv_dt = {str(dv_dt_func)} where x0 = t  \n") 
-
+with open(os.path.join(output_filepath, "summary_voltage_model.csv"), "a", newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow([
+                voltage_eqn,
+                dv_dt_func,
+                coeff_array[0],
+                coeff_array[1],
+                coeff_array[2],
+                coeff_array[3],
+                ])
+    
 for i in range(0,number_of_repeats):
 
     start_time = time.time()
-    select_model = model(voltage, dv_dt, current, i)
+    select_model = model(time_data, coeff_array, dv_dt, current, i)
     print (expand(select_model.sympy()))
     end_time = time.time()
 

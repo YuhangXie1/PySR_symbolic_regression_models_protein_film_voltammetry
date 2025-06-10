@@ -1,0 +1,23 @@
+model run ID: 20250610_164118_5iGcq0
+    A = np.full((1,len(time_data), coeff_array[0]))
+    w = np.full((1,len(time_data), coeff_array[1]))
+    p = np.full((1,len(time_data), coeff_array[2]))
+    c = np.full((1,len(time_data), coeff_array[3]))
+    X = np.array([A, w, p, c,
+                  np.sin(time_data * w), np.cos(time_data * w),
+                    np.sin(time_data * w *2), np.cos(time_data * w * 2),
+                    np.sin(time_data * w *3), np.cos(time_data * w * 3),
+                    np.sin(time_data * w *4), np.cos(time_data * w * 4),
+                    np.sin(time_data * w *5), np.cos(time_data * w * 5),
+                  ]).T
+    Y = np.array(current).reshape(-1,1)
+                       
+        model = PySRRegressor(
+        maxsize=30,
+        niterations=100,
+        batching= True,
+        binary_operators=["+","*"],
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+
+                       

@@ -48,7 +48,7 @@ def loading_data():
     current = np.array(data_combined["current"].iloc[slice_start:slice_end])
     freq = np.array(data_combined["Freq"].iloc[slice_start:slice_end])
 
-
+    
     #adding details to metadata
     Path(os.path.join(output_filepath)).mkdir(parents = True, exist_ok = True)
     with open(os.path.join(output_filepath, "metadata.txt"), "a") as metadata:
