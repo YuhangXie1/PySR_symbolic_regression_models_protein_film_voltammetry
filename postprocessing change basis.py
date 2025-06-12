@@ -24,8 +24,8 @@ dv_dt_eqn = A*w*sp.cos(w*x0 - sp.pi/2)
 
 #current_eqn = sympify("1.83479321254227e-6*dx*x**3 - 7.77746142237813e-7*dx*x**2 - 7.77746142237813e-7*dx*x + 7.5642693e-6*dx + 0.00060018763*x**2 + 0.0010604324*x + 2.4237355e-5")
 c1, c2, c3, c4, c5, c6, c7 = symbols("c1 c2 c3 c4 c5 c6 c7", real = True)
-#current_eqn = c1*dx*x**3 - c2*dx*x**2 - c3*dx*x + c4*dx + c5*x**2 + c6*x + c7
-current_eqn = - c2*dx*x**2 - c3*dx*x + c4*dx + c5*x**2 + c6*x + c7
+current_eqn = c1*dx*x**3 - c2*dx*x**2 - c3*dx*x + c4*dx + c5*x**2 + c6*x + c7
+#current_eqn = - c2*dx*x**2 - c3*dx*x + c4*dx + c5*x**2 + c6*x + c7
 
 #rewriting to fit the right format
 substituted_form = expand(current_eqn.subs([(x,voltage_eqn),(dx,dv_dt_eqn)]))
@@ -53,5 +53,5 @@ for item in trig_basis_array:
 constant_term = simplified_form.as_independent(*trig_basis_array)
 coeff_dict[1] = constant_term[0]
 
-print(coeff_dict)
+print(coeff_dict) 
 
