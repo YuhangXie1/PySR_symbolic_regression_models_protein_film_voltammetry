@@ -28,7 +28,6 @@ def load_data(Hz):
     data_volt = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
     data_amp = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_current", sep="\t", names = ["time","current"])
     data_combined = data_volt.join(data_amp["current"])
-    data_combined.insert(0, "Freq", Hz)
 
     #slicing data to remove start and end noise. Putting data into tuples
     slice_start = 550
@@ -36,9 +35,8 @@ def load_data(Hz):
     time_data = np.array(data_combined["time"].iloc[slice_start:slice_end])
     voltage = np.array(data_combined["voltage"].iloc[slice_start:slice_end])
     current = np.array(data_combined["current"].iloc[slice_start:slice_end])
-    freq = np.array(data_combined["Freq"].iloc[slice_start:slice_end])
 
-    return time_data, voltage, current, freq, [slice_start, slice_end]
+    return time_data, voltage, current, [slice_start, slice_end]
 
 
 def fit_sin(tt, yy):
@@ -67,16 +65,16 @@ def fit_sin(tt, yy):
     x0 = Symbol("x0")
     voltage_equation = A*sp.sin(w*x0 + p) + c
 
-    return voltage_equation
+    return voltage_equation, [A,w,p,c]
 
 
-def model(voltage, dv_dt, freq, current, time_data, ID):
+def model(time_data, voltage, dv_dt, current, A, w, p, c, ID):
     """
     Runs a PySR model to fit ([voltage, dv_dt], current) and returns the best model.
     """
 
     #X = np.array([voltage, voltage**2, voltage**3, dv_dt, dv_dt**2, dv_dt**3, freq, freq**2, freq**3]).T
-    X = np.array([voltage, dv_dt, freq]).T
+    X = np.array([voltage, dv_dt, A, w, p, c]).T
     Y = np.array(current).reshape(-1,1)
 
     #pysr model definition
@@ -117,9 +115,9 @@ def model(voltage, dv_dt, freq, current, time_data, ID):
         best = model.get_best()
         expanded_form = expand(sympify(str(model.sympy())))
         x0, x1, x2, x3, x4, x5, x6, x7, x8 = symbols("x0 x1 x2 x3 x4 x5 x6 x7 x8")
-        x, dx, f = symbols("x dx f") 
+        x, dx, A, w, p, c = symbols("x dx A w p c") 
         #substituted_form = expand(expanded_form.subs([(x0,x),(x1,x**2),(x2,x**3),(x3,dx),(x4,dx**2),(x5,dx**3),(x6,f),(x7,f**2),(x8,f**3)]))
-        substituted_form = expand(expanded_form.subs([(x0,x),(x1,dx),(x2,f)]))
+        substituted_form = expand(expanded_form.subs([(x0,x),(x1,dx),(x2,A),(x3,w),(x4,p),(x5,c)]))
 
         writer = csv.writer(file)
         writer.writerow([
@@ -176,8 +174,8 @@ def model(voltage, dv_dt, freq, current, time_data, ID):
     return model
 
 def fit_voltage_eqn(Hz):
-    time_data, voltage, current, freq, slice_array = load_data(Hz)
-    voltage_eqn = fit_sin(time_data, voltage)
+    time_data, voltage, current, slice_array = load_data(Hz)
+    voltage_eqn, coeff_array = fit_sin(time_data, voltage)
     
     x0 = Symbol("x0")
     voltage_equation_func = lambdify(x0, voltage_eqn)
@@ -232,11 +230,11 @@ def fit_voltage_eqn(Hz):
     Path(os.path.join(output_filepath, "voltage-graphs")).mkdir(parents = True, exist_ok = True)
     plt.savefig(os.path.join(output_filepath, "voltage-graphs", f"{Hz}Hz-voltage-time.png"))
 
-    return voltage_eqn, dv_dt_eqn
+    return voltage_eqn, dv_dt_eqn, coeff_array
 
 ### main ###
-output_filepath = rf"results/20250523-multi-fit-workflow-2/test-3-36,99/"
-number_of_repeats = 10
+output_filepath = rf"results/20250610-multi-fit-workflow-3/test-1-36,99/"
+number_of_repeats = 3
 #files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
 files_freq = [36, 99]
 
@@ -263,25 +261,30 @@ with open(os.path.join(output_filepath, "summary_current_model.csv"), "a", newli
                     ])
     
 #find voltage eqn and stitch data together
-combined_data_array = np.empty((1,5))
+combined_data_array = np.empty((1,8))
 for Hz in files_freq:
     #find voltage eqn
-    voltage_eqn, dv_dt_eqn = fit_voltage_eqn(Hz)
+    voltage_eqn, dv_dt_eqn, coeff_array = fit_voltage_eqn(Hz)
 
     #stitch data
-    time_data, voltage, current, freq, slice_array = load_data(Hz)
+    time_data, voltage, current, slice_array = load_data(Hz)
     x0 = Symbol("x0")
     dv_dt_lambda = lambdify(x0,dv_dt_eqn)
     dv_dt = dv_dt_lambda(time_data)
 
-    combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, dv_dt, current, freq]).T],0)
+    A = np.full((1,len(time_data)), coeff_array[0])[0]
+    w = np.full((1,len(time_data)), coeff_array[1])[0]
+    p = np.full((1,len(time_data)), coeff_array[2])[0]
+    c = np.full((1,len(time_data)), coeff_array[3])[0]
+
+    combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, dv_dt, current, A, w, p, c]).T],0)
 
 combined_data_array = np.delete(combined_data_array, (0), axis=0)
 
 
 for ID in range(0,number_of_repeats):
     start_time = time.time()
-    select_model = model(combined_data_array[:,1], combined_data_array[:,2], combined_data_array[:,4], combined_data_array[:,3], combined_data_array[:,0], ID)
+    select_model = model(combined_data_array[:,0],combined_data_array[:,1], combined_data_array[:,2], combined_data_array[:,3], combined_data_array[:,4], combined_data_array[:,5],combined_data_array[:,6],combined_data_array[:,7], ID)
     end_time = time.time()
     time_elapsed = str(datetime.timedelta(seconds = end_time - start_time))
 

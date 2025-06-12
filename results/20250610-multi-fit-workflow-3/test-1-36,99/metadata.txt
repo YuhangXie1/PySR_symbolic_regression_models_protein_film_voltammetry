@@ -1,0 +1,5 @@
+36Hz voltage fit. Time data: slice start: 550, slice end: -100 
+99Hz voltage fit. Time data: slice start: 550, slice end: -100 
+model repeat 0 time taken = 0:14:51.420839 hr:min:sec 
+model repeat 1 time taken = 0:14:36.409467 hr:min:sec 
+model repeat 2 time taken = 0:18:15.824394 hr:min:sec 
