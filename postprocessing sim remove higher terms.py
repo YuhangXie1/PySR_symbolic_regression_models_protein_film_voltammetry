@@ -93,7 +93,7 @@ def generate_plots(time_data, current, dv_dt, current_pred, eqn_number, terms, o
     axs[2].legend()
 
     fig.tight_layout()
-    plt.savefig(os.path.join(output_filepath, f"eqn_{eqn_number}",f"removed_{terms}_terms", f"Eqn-{eqn_number}-rm-{terms}-current-time.png"))
+    plt.savefig(os.path.join(output_filepath,f"removed_{terms}_terms", f"Eqn-{eqn_number}-rm-{terms}-current-time.png"))
     plt.close(fig.figure)
 
     #current dV/dt graph
@@ -106,7 +106,7 @@ def generate_plots(time_data, current, dv_dt, current_pred, eqn_number, terms, o
     axs.legend()
 
     fig.tight_layout()
-    plt.savefig(os.path.join(output_filepath, f"eqn_{eqn_number}",f"removed_{terms}_terms", f"Eqn-{eqn_number}-rm-{terms}-dv_dt.png"))
+    plt.savefig(os.path.join(output_filepath,f"removed_{terms}_terms", f"Eqn-{eqn_number}-rm-{terms}-dv_dt.png"))
     plt.close(fig.figure)
     
 def generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, output_filepath):
@@ -127,7 +127,7 @@ def generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, out
     axs.set_title(f"File {Hz}Hz, Eqn {eqn_number}, removed {terms} terms, all harmonics")
     axs.legend()
     fig.tight_layout()
-    plt.savefig(os.path.join(output_filepath, f"eqn_{eqn_number}",f"removed_{terms}_terms", "All-harmonic-freq.png"))
+    plt.savefig(os.path.join(output_filepath,f"removed_{terms}_terms", "All-harmonic-freq.png"))
 
     #plotting figures 1 by 1
     for harmonic in range(1,10):
@@ -233,7 +233,7 @@ def generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, out
     fig1.supylabel("Log10 ft^2")
     fig1.suptitle(f"File {Hz}Hz, Eqn {eqn_number}, removed {terms} terms. Harmonics in freq domain")
     fig1.tight_layout()
-    fig1.savefig(os.path.join(output_filepath, f"eqn_{eqn_number}",f"removed_{terms}_terms", f"Harmonics-freq-3x3.png"))
+    fig1.savefig(os.path.join(output_filepath,f"removed_{terms}_terms", f"Harmonics-freq-3x3.png"))
     plt.close(fig1.figure)
 
     fig2.legend(handles_2, labels_2, loc='lower right')
@@ -241,7 +241,7 @@ def generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, out
     fig2.supylabel("Current")
     fig2.suptitle(f"File {Hz}Hz, Eqn {eqn_number}, removed {terms} terms. Harmonics in time domain")
     fig2.tight_layout()
-    fig2.savefig(os.path.join(output_filepath, f"eqn_{eqn_number}",f"removed_{terms}_terms", f"Harmonics-time-3x3.png"))
+    fig2.savefig(os.path.join(output_filepath,f"removed_{terms}_terms", f"Harmonics-time-3x3.png"))
     plt.close(fig2.figure)
 
     fig3.legend(handles_3, labels_3, loc='lower right')
@@ -249,7 +249,7 @@ def generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, out
     fig3.supylabel("Current")
     fig3.suptitle(f"File {Hz}Hz, Eqn {eqn_number}, removed {terms} terms. Harmonics in voltage domain")
     fig3.tight_layout()
-    fig3.savefig(os.path.join(output_filepath, f"eqn_{eqn_number}",f"removed_{terms}_terms", f"Harmonics-voltage-3x3.png"))
+    fig3.savefig(os.path.join(output_filepath,f"removed_{terms}_terms", f"Harmonics-voltage-3x3.png"))
     plt.close(fig3.figure)
 
 
@@ -257,23 +257,20 @@ def generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, out
 frequency = 36
 Hz = 36
 t, x, dx = symbols("t x dx")
+A, w, p, c = symbols("A w p c")
 
-time_data = np.linspace(0, 6, num=20000)
-voltage_equation = 0.3*sp.sin(2*sp.pi*frequency*t-0.5*sp.pi) - 0.05
-voltage_lambda = lambdify(t, voltage_equation)
-dv_dt_equation = diff(voltage_equation,t)
-dv_dt_lambda = lambdify(t, dv_dt_equation)
+time_data, voltage, current, dv_dt, data_equations = load_data(Hz)
 
-voltage = voltage_lambda(time_data)
-dv_dt = dv_dt_lambda(time_data)
+eqn_number = 0
+terms_removed = 6
+output_filepath = rf"results/20250613-explore/fourier-series-36-Hz/eqn-{eqn_number}"
+set_eqn = "2.7175533e-5*c*sin(t*w)  + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) "
+removed_terms = "- 1.35877665e-5*c*cos(7*t*w) + 1.35877665e-5*c*sin(4*t*w) + 2.7175533e-5*c*sin(3*t*w) + 1.35877665e-5*c*cos(3*t*w) - 0.000104288472158871*c*sin(2*t*w) + 2.7175533e-5*cos(2*t*w)"
 
-current_equation = 3 * x**3 + 2 * x**2 + x + 1
-current_lambda = lambdify(t, current_equation)
-current = current_lambda(voltage)
-
-
-output_filepath = rf"results/20250523-sim-post-fft-eqns/"
-
+substituted_form = sympify(set_eqn)
+substituted_form = substituted_form.subs([(A,0.3),(w,228.4492878688),(p,- 1.55129181348585),(c,-0.05)])
+substituted_form_lambda = lambdify(t, substituted_form)
+current_pred = substituted_form_lambda(time_data)
 
 Path(os.path.join(output_filepath)).mkdir(parents=True, exist_ok=True)
 with open(os.path.join(output_filepath, f"summary.csv"), "a", newline='') as file:
@@ -281,72 +278,19 @@ with open(os.path.join(output_filepath, f"summary.csv"), "a", newline='') as fil
     writer.writerow(["num_terms_removed",
                     "MSE",
                     "actual_eqn",
-                    "removed_terms",
-                    "full_eqn",
+                    "removed_term",
                     ])
 
-eqn_coeff_list = list(current_equation.as_coefficients_dict())
+current_MSE = calculate_MSE(current, current_pred)
 
-order_by_pow_coeff= {}
-for i in eqn_coeff_list:
-    powers_dict = i.as_powers_dict()
-    total_power = sum(list(powers_dict.values()))
-    order_by_pow_coeff[i] = total_power
+with open(os.path.join(output_filepath, f"summary.csv"), "a", newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow([terms_removed,
+                    current_MSE,
+                    set_eqn,
+                    removed_terms,
+                    ]) 
 
-#orders the coeffs into highest combination of powers first, stored as list of tuples
-order_by_pow_coeff = sorted(order_by_pow_coeff.items(), key = lambda item: item[1], reverse = True)
-#turns list of tuples into a list, preserving order. Removing linear terms, as never want to delete those
-order_by_pow_coeff_no_linear = [i[0] for i in order_by_pow_coeff if i[1] > 1]
-order_by_pow_coeff_inc_linear = [i[0] for i in order_by_pow_coeff]
-
-MSE_array = []
-eqn_rm_array = []
-for terms in range(0,len(order_by_pow_coeff_no_linear)+1):
-    removed = order_by_pow_coeff_no_linear[0:terms]
-
-    eqn_rm = current_equation
-    for i in removed:
-        eqn_rm = eqn_rm.subs(i, 0)
-    eqn_rm_array.append(list(eqn_rm.as_coefficients_dict()))
-
-    eqn_lambda = lambdify([x,dx],eqn_rm)
-    current_pred = eqn_lambda(voltage, dv_dt)
-    current_MSE = calculate_MSE(current, current_pred)
-    MSE_array.append(current_MSE)
-
-    with open(os.path.join(output_filepath, f"summary.csv"), "a", newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([terms,
-                        current_MSE,
-                        eqn_rm,
-                        removed,
-                        current_equation,
-                        ]) 
-    
-    eqn_number = 0
-    Path(os.path.join(output_filepath,f"removed_{terms}_terms")).mkdir(parents=True, exist_ok=True)
-    generate_plots(time_data, current, dv_dt, current_pred, eqn_number, terms, output_filepath)
-    generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, output_filepath)               
-
-MSE_log_array = np.log10(np.array(MSE_array))
-highest_coeff_var = []
-for coeff_array_index in range(0, len(eqn_rm_array)):
-    coeff_array = eqn_rm_array[coeff_array_index]
-    coeff_array = [term for term in order_by_pow_coeff_inc_linear[::-1] if term in coeff_array]
-    highest_coeff_var.append(coeff_array[-1])
-    for coeff_index in range(0,len(coeff_array)):
-        coeff_array[coeff_index] = "".join([str(coeff_array[coeff_index]), "\n"])
-    eqn_rm_array[coeff_array_index] = coeff_array
-    eqn_rm_array[coeff_array_index].insert(0,"".join([str(coeff_array_index),"\n\n"]))
-    eqn_rm_array[coeff_array_index] = "".join(eqn_rm_array[coeff_array_index])
-
-fig, axs = plt.subplots()
-axs.plot(range(0,len(MSE_log_array)), MSE_log_array, color = "red")
-axs.set_xlabel("Number of terms removed\n Terms remaining")
-axs.set_ylabel("log10 MSE")
-axs.set_title(f"Eqn-{eqn_number}. MSE by removing terms")
-axs.set_xticks(range(0,len(MSE_log_array)),eqn_rm_array)
-
-fig.tight_layout()
-plt.savefig(os.path.join(output_filepath, f"eqn_{eqn_number}", f"Eqn-{eqn_number}-MSE-by-terms.png"))
-plt.close(fig.figure)
+Path(os.path.join(output_filepath,f"removed_{terms_removed}_terms")).mkdir(parents=True, exist_ok=True)
+generate_plots(time_data, current, dv_dt, current_pred, eqn_number, terms_removed, output_filepath)
+generate_fft_graphs(time_data, current, current_pred, eqn_number, terms_removed, output_filepath)

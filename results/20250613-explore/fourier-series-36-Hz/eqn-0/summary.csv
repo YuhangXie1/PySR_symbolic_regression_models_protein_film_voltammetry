@@ -1,0 +1,14 @@
+num_terms_removed,MSE,actual_eqn,removed_term
+0,9.77727216116346e-08,2.7175533e-5*c*sin(t*w) - 0.000104288472158871*c*sin(2*t*w) + 2.7175533e-5*c*sin(3*t*w) + 1.35877665e-5*c*sin(4*t*w) + 1.35877665e-5*c*cos(3*t*w) - 1.35877665e-5*c*cos(7*t*w) + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),
+num_terms_removed,MSE,actual_eqn,removed_term
+1,7.67163128462306e-08,2.7175533e-5*c*sin(t*w) - 0.000104288472158871*c*sin(2*t*w) + 2.7175533e-5*c*sin(3*t*w) + 1.35877665e-5*c*sin(4*t*w) + 1.35877665e-5*c*cos(3*t*w)  + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),- 1.35877665e-5*c*cos(7*t*w)
+num_terms_removed,MSE,actual_eqn,removed_term
+2,1.567263700974337e-07,2.7175533e-5*c*sin(t*w) - 0.000104288472158871*c*sin(2*t*w) + 2.7175533e-5*c*sin(3*t*w)  + 1.35877665e-5*c*cos(3*t*w)  + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),- 1.35877665e-5*c*cos(7*t*w) + 1.35877665e-5*c*sin(4*t*w)
+num_terms_removed,MSE,actual_eqn,removed_term
+3,4.3008606264792554e-07,2.7175533e-5*c*sin(t*w) - 0.000104288472158871*c*sin(2*t*w) + 1.35877665e-5*c*cos(3*t*w)  + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),- 1.35877665e-5*c*cos(7*t*w) + 1.35877665e-5*c*sin(4*t*w) + 2.7175533e-5*c*sin(3*t*w)
+num_terms_removed,MSE,actual_eqn,removed_term
+4,5.164892922368195e-07,2.7175533e-5*c*sin(t*w) - 0.000104288472158871*c*sin(2*t*w) + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),- 1.35877665e-5*c*cos(7*t*w) + 1.35877665e-5*c*sin(4*t*w) + 2.7175533e-5*c*sin(3*t*w) + 1.35877665e-5*c*cos(3*t*w)
+num_terms_removed,MSE,actual_eqn,removed_term
+5,4.046337407529607e-06,2.7175533e-5*c*sin(t*w)  + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),- 1.35877665e-5*c*cos(7*t*w) + 1.35877665e-5*c*sin(4*t*w) + 2.7175533e-5*c*sin(3*t*w) + 1.35877665e-5*c*cos(3*t*w) - 0.000104288472158871*c*sin(2*t*w)
+num_terms_removed,MSE,actual_eqn,removed_term
+6,0.00010046363785469047,2.7175533e-5*c*sin(t*w)  + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) ,- 1.35877665e-5*c*cos(7*t*w) + 1.35877665e-5*c*sin(4*t*w) + 2.7175533e-5*c*sin(3*t*w) + 1.35877665e-5*c*cos(3*t*w) - 0.000104288472158871*c*sin(2*t*w) + 2.7175533e-5*cos(2*t*w)

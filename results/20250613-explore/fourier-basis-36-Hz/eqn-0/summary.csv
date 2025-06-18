@@ -1,0 +1,12 @@
+num_terms_removed,MSE,actual_eqn
+0,9.777272161162178e-08,2.7175533e-5*c*sin(2*t*w)*sin(5*t*w) + 5.4351066e-5*c*sin(2*t*w)*cos(t*w) + 2.7175533e-5*c*sin(2*t*w)*cos(2*t*w) - 0.000104288472158871*c*sin(2*t*w) + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w)
+num_terms_removed,MSE,actual_eqn,removed_term
+1,1.6321919028024554e-07,5.4351066e-5*c*sin(2*t*w)*cos(t*w) + 2.7175533e-5*c*sin(2*t*w)*cos(2*t*w) - 0.000104288472158871*c*sin(2*t*w) + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),2.7175533e-5*c*sin(2*t*w)*sin(5*t*w) + 
+num_terms_removed,MSE,actual_eqn,removed_term
+2,6.823609759383732e-07, 2.7175533e-5*c*sin(2*t*w)*cos(2*t*w) - 0.000104288472158871*c*sin(2*t*w) + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),2.7175533e-5*c*sin(2*t*w)*sin(5*t*w) + 5.4351066e-5*c*sin(2*t*w)*cos(t*w) +
+num_terms_removed,MSE,actual_eqn,removed_term
+3,7.620722884241896e-07,  - 0.000104288472158871*c*sin(2*t*w) + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),2.7175533e-5*c*sin(2*t*w)*sin(5*t*w) + 5.4351066e-5*c*sin(2*t*w)*cos(t*w) + 2.7175533e-5*c*sin(2*t*w)*cos(2*t*w)
+num_terms_removed,MSE,actual_eqn,removed_term
+4,4.292195186727367e-06,  0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w),2.7175533e-5*c*sin(2*t*w)*sin(5*t*w) + 5.4351066e-5*c*sin(2*t*w)*cos(t*w) + 2.7175533e-5*c*sin(2*t*w)*cos(2*t*w) - 0.000104288472158871*c*sin(2*t*w) +
+num_terms_removed,MSE,actual_eqn,removed_term
+5,0.00010069959689655637,  0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) ,2.7175533e-5*c*sin(2*t*w)*sin(5*t*w) + 5.4351066e-5*c*sin(2*t*w)*cos(t*w) + 2.7175533e-5*c*sin(2*t*w)*cos(2*t*w) - 0.000104288472158871*c*sin(2*t*w) + + 2.7175533e-5*cos(2*t*w)

@@ -1,0 +1,13 @@
+model run ID: 20250613_143400_WAePak
+    X = np.array([voltage, dv_dt, A1, A2, A3, w1, w2, w3]).T
+    Y = np.array(current).reshape(-1,1)
+
+    model = PySRRegressor(
+        maxsize=40,
+        niterations=200,
+        batching= True,
+        binary_operators=["+","*"],
+        elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+    )
+
+                       

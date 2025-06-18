@@ -22,8 +22,6 @@ def load_data(Hz):
     """
     Returns numpy arrays of time_data, voltage, current and frequency for a set of data files
     """
-    loc=r".\Data_for_eq_learning"
-
     #loading data
     data_volt = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
     data_amp = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_current", sep="\t", names = ["time","current"])
@@ -38,6 +36,16 @@ def load_data(Hz):
 
     return time_data, voltage, current, [slice_start, slice_end]
 
+def load_data_2(filepath):
+    data = pd.read_csv(filepath, header=0)
+
+    slice_start = 550
+    slice_end = -100
+    time_data = np.array(data["x"].iloc[slice_start:slice_end])
+    voltage = np.array(data["z"].iloc[slice_start:slice_end])
+    current = np.array(data["y"].iloc[slice_start:slice_end])
+
+    return time_data, voltage, current, [slice_start, slice_end]
 
 def fit_sin(tt, yy):
     """
@@ -68,13 +76,14 @@ def fit_sin(tt, yy):
     return voltage_equation, [A,w,p,c]
 
 
-def model(time_data, voltage, dv_dt, current, A, w, p, c, ID):
+def model(time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val, ID):
     """
     Runs a PySR model to fit ([voltage, dv_dt], current) and returns the best model.
     """
 
     #X = np.array([voltage, voltage**2, voltage**3, dv_dt, dv_dt**2, dv_dt**3, freq, freq**2, freq**3]).T
-    X = np.array([voltage, dv_dt, A, w, p, c]).T
+    X = np.array([voltage, dv_dt, A, w, p, c, A_val, p_val]).T
+    #X = np.array([voltage, dv_dt]).T
     Y = np.array(current).reshape(-1,1)
 
     #pysr model definition
@@ -82,7 +91,7 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, ID):
         maxsize=40,
         niterations=200,
         batching= True,
-        binary_operators=["+","*"],
+        binary_operators=["+","*","^"],
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
 
@@ -94,16 +103,18 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, ID):
     with open(os.path.join(output_filepath, str(ID), "metadata.txt"), "a") as metadata:
         metadata.write(f"model run ID: {model.run_id_}")
         metadata.write('''
-    X = np.array([voltage, dv_dt, freq]).T
+    X = np.array([voltage, dv_dt, A, w, p, c, A_val, p_val]).T
     Y = np.array(current).reshape(-1,1)
 
+    #pysr model definition
     model = PySRRegressor(
         maxsize=40,
         niterations=200,
         batching= True,
-        binary_operators=["+","*"],
+        binary_operators=["+","*","^"],
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
+
 
                        \n''')
         
@@ -115,9 +126,10 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, ID):
         best = model.get_best()
         expanded_form = expand(sympify(str(model.sympy())))
         x0, x1, x2, x3, x4, x5, x6, x7, x8 = symbols("x0 x1 x2 x3 x4 x5 x6 x7 x8")
-        x, dx, A, w, p, c = symbols("x dx A w p c") 
+        x, dx, A, w, p, c, A_val, p_val = symbols("x dx A w p c A_val p_val") 
         #substituted_form = expand(expanded_form.subs([(x0,x),(x1,x**2),(x2,x**3),(x3,dx),(x4,dx**2),(x5,dx**3),(x6,f),(x7,f**2),(x8,f**3)]))
-        substituted_form = expand(expanded_form.subs([(x0,x),(x1,dx),(x2,A),(x3,w),(x4,p),(x5,c)]))
+        substituted_form = expand(expanded_form.subs([(x0,x),(x1,dx),(x2,A),(x3,w),(x4,p),(x5,c),(x6,A_val),(x7,p_val)]))
+        #substituted_form = expand(expanded_form.subs([(x0,x),(x1,dx)]))
 
         writer = csv.writer(file)
         writer.writerow([
@@ -173,8 +185,7 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, ID):
 
     return model
 
-def fit_voltage_eqn(Hz):
-    time_data, voltage, current, slice_array = load_data(Hz)
+def fit_voltage_eqn(time_data, voltage):
     voltage_eqn, coeff_array = fit_sin(time_data, voltage)
     
     x0 = Symbol("x0")
@@ -183,13 +194,8 @@ def fit_voltage_eqn(Hz):
     voltage_MSE = calculate_MSE(voltage, voltage_pred)
     dv_dt_eqn = diff(voltage_eqn, x0)
 
-
     #adding details to metadata and summary files
-    
-    with open(os.path.join(output_filepath, "metadata.txt"), "a") as metadata:
-        metadata.write(f"{Hz}Hz voltage fit. Time data: slice start: {slice_array[0]}, slice end: {slice_array[1]} \n")
-
-    with open(os.path.join(output_filepath, "summary_voltage_models.csv"), "a", newline='') as file:
+    with open(os.path.join(output_filepath, "summary_voltage_model.csv"), "a", newline='') as file:
         writer = csv.writer(file)
         writer.writerow([
                         Hz,
@@ -233,14 +239,15 @@ def fit_voltage_eqn(Hz):
     return voltage_eqn, dv_dt_eqn, coeff_array
 
 ### main ###
-output_filepath = rf"results/20250610-multi-fit-workflow-3/test-1-36,99/"
+output_filepath = rf"results/20250618-multi-fit-workflow-6/"
+#load_filepath = rf"Data_for_eq_learning\20250611-CjX\20250611-CjX-PSV-3Hz.csv"
+
 number_of_repeats = 3
-#files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
-files_freq = [36, 99]
+files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
 
 #initialising headers
 Path(os.path.join(output_filepath)).mkdir(parents = True, exist_ok = True)
-with open(os.path.join(output_filepath, "summary_voltage_models.csv"), "a", newline='') as file:
+with open(os.path.join(output_filepath, "summary_voltage_model.csv"), "a", newline='') as file:
     writer = csv.writer(file)
     writer.writerow([
                     "Hz",
@@ -261,13 +268,19 @@ with open(os.path.join(output_filepath, "summary_current_model.csv"), "a", newli
                     ])
     
 #find voltage eqn and stitch data together
-combined_data_array = np.empty((1,8))
+combined_data_array = np.empty((1,10))
 for Hz in files_freq:
-    #find voltage eqn
-    voltage_eqn, dv_dt_eqn, coeff_array = fit_voltage_eqn(Hz)
-
-    #stitch data
+    #load data
+    #time_data, voltage, current, slice_array = load_data_2(load_filepath)
     time_data, voltage, current, slice_array = load_data(Hz)
+    #find voltage eqn
+    voltage_eqn, dv_dt_eqn, coeff_array = fit_voltage_eqn(time_data, voltage)
+
+    #current phase and amplitude data
+    phase_data = pd.read_csv(rf"results\20250617-current-phase-original-set\summary.csv")
+    p_val = np.array(phase_data.loc[phase_data["Hz"] == Hz]["phase"])[0]
+    A_val = np.array(phase_data.loc[phase_data["Hz"] == Hz]["amplitude"])[0]
+
     x0 = Symbol("x0")
     dv_dt_lambda = lambdify(x0,dv_dt_eqn)
     dv_dt = dv_dt_lambda(time_data)
@@ -276,15 +289,16 @@ for Hz in files_freq:
     w = np.full((1,len(time_data)), coeff_array[1])[0]
     p = np.full((1,len(time_data)), coeff_array[2])[0]
     c = np.full((1,len(time_data)), coeff_array[3])[0]
+    p_val = np.full((1,len(time_data)), p_val)[0]
+    A_val = np.full((1,len(time_data)), A_val)[0]
 
-    combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, dv_dt, current, A, w, p, c]).T],0)
+    combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val]).T],0)
 
 combined_data_array = np.delete(combined_data_array, (0), axis=0)
 
-
 for ID in range(0,number_of_repeats):
     start_time = time.time()
-    select_model = model(combined_data_array[:,0],combined_data_array[:,1], combined_data_array[:,2], combined_data_array[:,3], combined_data_array[:,4], combined_data_array[:,5],combined_data_array[:,6],combined_data_array[:,7], ID)
+    select_model = model(combined_data_array[:,0],combined_data_array[:,1], combined_data_array[:,2], combined_data_array[:,3], combined_data_array[:,4], combined_data_array[:,5],combined_data_array[:,6],combined_data_array[:,7],combined_data_array[:,8],combined_data_array[:,9], ID)
     end_time = time.time()
     time_elapsed = str(datetime.timedelta(seconds = end_time - start_time))
 

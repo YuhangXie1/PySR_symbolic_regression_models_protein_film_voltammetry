@@ -62,6 +62,16 @@ def load_data(Hz):
 
     return time_data, voltage, current, dv_dt, data_equations
 
+def load_data_2(filepath):
+    data = pd.read_csv(filepath, header=0)
+
+    slice_start = 550
+    slice_end = -100
+    time_data = np.array(data["x"].iloc[slice_start:slice_end])
+    voltage = np.array(data["z"].iloc[slice_start:slice_end])
+    current = np.array(data["y"].iloc[slice_start:slice_end])
+
+    return time_data, voltage, current, [slice_start, slice_end]
 
 def generate_plots(time_data, current, dv_dt, current_pred, eqn_number, terms, output_filepath):
 
@@ -254,11 +264,27 @@ def generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, out
 
 ##main##
 #files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
-Hz = 36
+Hz = 3
+load_filepath = rf"Data_for_eq_learning\20250611-CjX\20250611-blank-PSV-3Hz.csv"
+output_filepath = rf"results\20250616-CjX-fit-workflow-2\CjX\20250611-blank-PSV-3Hz\fft"
+file_loc = rf"results\20250616-CjX-fit-workflow-2\blank\20250611-blank-PSV-3Hz"
 
-time_data, voltage, current, dv_dt, data_equations = load_data(Hz)
-#output_filepath = rf"results/20250521-fit-workflow-post-fft-eqns/{Hz}/"
-output_filepath = "test"
+time_data, voltage, current, slice = load_data_2(load_filepath)
+
+#loading voltage equation
+voltage_eqn_file = pd.read_csv(os.path.join(file_loc, "summary_voltage_model.csv"))
+voltage_sympy = sympify(np.array(voltage_eqn_file["voltage_eqn"])[0])
+
+x0 = Symbol("x0")
+dv_dt_eqn = sympify(np.array(voltage_eqn_file["dv_dt_eqn"])[0])
+dv_dt_lambda = lambdify(x0,dv_dt_eqn)
+dv_dt = dv_dt_lambda(time_data)
+
+#loading summary file
+data = pd.read_csv(os.path.join(file_loc,"summary_current_model.csv"))
+data_equations = sympify(np.array(data["substituted_form"]))
+
+####
 
 fig_overall, axs_overall = plt.subplots()
 axs_overall.set_xlabel("Highest total power of variables")
@@ -286,7 +312,10 @@ for eqn_number, eqn in enumerate(data_equations):
     order_by_pow_coeff= {}
     for i in eqn_coeff_list:
         powers_dict = i.as_powers_dict()
-        total_power = sum(list(powers_dict.values()))
+        total_power = 0
+        for key, value in powers_dict.items():
+            if key == x or key == dx:
+                total_power += value
         order_by_pow_coeff[i] = total_power
 
     #orders the coeffs into highest combination of powers first, stored as list of tuples

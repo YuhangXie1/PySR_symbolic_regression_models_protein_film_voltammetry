@@ -1,5 +1,5 @@
 import numpy as np
-from sympy import Symbol, sympify, symbols, diff, Wild
+from sympy import Symbol, sympify, symbols, diff, Wild, expand
 import sympy as sp
 from sympy.utilities.lambdify import lambdify
 from scipy.optimize import curve_fit
@@ -24,146 +24,23 @@ def load_data(Hz):
     """
     Returns numpy arrays of time_data, voltage, current and frequency for a set of data files
     """
-    loc=r".\Data_for_eq_learning"
-
     #loading data
-    data_volt = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
-    data_amp = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_current", sep="\t", names = ["time","current"])
-    data_combined = data_volt.join(data_amp["current"])
-    data_combined.insert(0, "Freq", Hz)
+    #data_volt = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
+    #data_amp = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_current", sep="\t", names = ["time","current"])
+    
+    data_amp = pd.read_csv(r"Data_for_eq_learning\FTacV_before_PSV_cv_current", sep="\t", names = ["time","current"])
+    data_volt = pd.read_csv(r"Data_for_eq_learning\FTacV_before_PSV_cv_voltage", sep="\t", names = ["time","voltage"])
 
     #slicing data to remove start and end noise. Putting data into tuples
-    slice_start = 550
-    slice_end = -100
-    time_data = np.array(data_combined["time"].iloc[slice_start:slice_end])
-    voltage = np.array(data_combined["voltage"].iloc[slice_start:slice_end])
-    current = np.array(data_combined["current"].iloc[slice_start:slice_end])
-    freq = np.array(data_combined["Freq"].iloc[slice_start:slice_end])
+    slice_start = 0
+    slice_end = -50
+    time_data = np.array(data_amp["time"].iloc[slice_start:slice_end])
+    voltage = np.array(data_volt["voltage"].iloc[slice_start:slice_end])
+    current = np.array(data_amp["current"].iloc[slice_start:slice_end])
 
-    return time_data, voltage, current, freq, [slice_start, slice_end]
-
+    return time_data, voltage, current, [slice_start, slice_end]
 
 
-#####
-files_freq = [36, 45]
-
-combined_data_array = np.empty((1,4))
-
-for Hz in files_freq:
-    time_data, voltage, current, freq, slice_array = load_data(Hz)
-    combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, current, freq]).T],0)
-
-combined_data_array = np.delete(combined_data_array, (0), axis=0)
-#print(combined_data_array)
-
-
-
-
-
-#loading data
-data = pd.read_csv("Data_for_eq_learning/20250610/20250610-blank-PSV-36Hz.csv", header = 0)
-
-#slicing data to remove start and end noise. Putting data into tuples
-slice_start = 0
-slice_end = -1
-time_data_new = np.array(data["x"].iloc[slice_start:slice_end])
-voltage_new = np.array(data["z"].iloc[slice_start:slice_end])
-current_new = np.array(data["y"].iloc[slice_start:slice_end])
-
-data = pd.read_csv("Data_for_eq_learning/20250610/20250610-NimA-PSV-36Hz.csv", header = 0)
-
-#slicing data to remove start and end noise. Putting data into tuples
-slice_start = 0
-slice_end = -1
-time_data_new_nima = np.array(data["x"].iloc[slice_start:slice_end])
-voltage_new_nima = np.array(data["z"].iloc[slice_start:slice_end])
-current_new_nima = np.array(data["y"].iloc[slice_start:slice_end])
-
-time_data_old, voltage_old, current_old, freq, slice = load_data(36)
-
-
-sinusoid_new = 0.3*np.sin(2*np.pi*36*time_data_new - np.pi/2) - 0.05
-sinusoid_old = 0.3*np.sin(2*np.pi*36*time_data_old - np.pi/2) - 0.05
-
-voltage_pred_old = 0.299894563526984*np.sin(228.449287868794*time_data_old - 1.55129181346913) - 0.0496859862566539
-sinusoid_old_2 = 0.3*np.sin(228.449287868794*time_data_old - np.pi/2) - 0.05
-sinusoid_old_3 = 0.3*np.sin(228.449287868794*time_data_old - 1.55129181346913) - 0.05
-sinusoid_old_4 = 0.3*np.sin((np.pi*2*36+2.2546168103288835)*time_data_old - (np.pi/2 -0.019504513325766526)) - 0.05
-sinusoid_old_5 = 0.3*np.sin((np.pi*2*36)*time_data_old - (np.pi/2)) - 0.05
-
-voltage_pred_new = 0.299791538901415*np.sin(226.203834030565*time_data_new - 1.58242902181405) - 0.050229948540937
-sinusoid_new_2 = 0.3*np.sin(226.203834030565*time_data_new - 1.58242902181405) - 0.05
-sinusoid_new_3 = 0.3*np.sin(226.203834030565*time_data_new - np.pi/2) - 0.05
-sinusoid_new_4 = 0.3*np.sin((np.pi*2*36)*time_data_new - (np.pi/2)) - 0.05
-sinusoid_new_5 = 0.3*np.sin((np.pi*2*36+2.2546168103288835)*time_data_new - (np.pi/2 -0.019504513325766526)) - 0.05
-
-#print(np.pi*2*36 - 226.203834030565)
-#print(np.pi/2 - 1.58242902181405)
-
-#-0.009162972099886701
-#-0.011632695019153427
-#36.358833410141926
-
-print(228.449287868794 / (np.pi * 2))
-print(1.55129181346913 / (np.pi))
-
-""" fig, axs = plt.subplots(2,2)
-
-axs[0,0].plot(voltage_old, voltage_old, label = "real", color = "blue")
-axs[0,0].plot(voltage_old, voltage_pred_old, label = "pred", color = "red", linestyle = "dotted")
-axs[0,0].set_title("Learned eqn: \n 0.299894563526984*np.sin(228.449287868794*time_data_old - 1.55129181346913) - 0.0496859862566539")
-
-axs[0,1].plot(voltage_old, voltage_old, label = "real", color = "blue")
-axs[0,1].plot(voltage_old, sinusoid_old_3, label = "pred", color = "red", linestyle = "dotted")
-axs[0,1].set_title("Eqn: \n 0.3*np.sin(228.449287868794*time_data_old - 1.55129181346913) - 0.05")
-
-axs[1,0].plot(voltage_old, voltage_old, label = "real", color = "blue")
-axs[1,0].plot(voltage_old, sinusoid_old_2, label = "pred", color = "red", linestyle = "dotted")
-axs[1,0].set_title("Eqn: \n 0.3*np.sin(228.449287868794*time_data_old - np.pi/2) - 0.05")
-
-axs[1,1].plot(voltage_old, voltage_old, label = "real", color = "blue")
-axs[1,1].plot(voltage_old, sinusoid_old_5, label = "pred", color = "red", linestyle = "dotted")
-axs[1,1].set_title("Eqn: \n 0.3*np.sin((np.pi*2*36)*time_data_old - (np.pi/2)) - 0.05")
-
-
-fig.supxlabel("Voltage pred")
-fig.supylabel("Voltage real")
-fig.tight_layout()
-plt.show() """
-
-""" fig, axs = plt.subplots(2,2)
-
-axs[0,0].plot(voltage_new, voltage_new, label = "real", color = "blue")
-axs[0,0].plot(voltage_new, voltage_pred_new, label = "pred", color = "red", linestyle = "dotted")
-axs[0,0].set_title("Learned eqn: \n 0.299791538901415*np.sin(226.203834030565*time_data_new - 1.58242902181405) - 0.050229948540937")
-
-axs[0,1].plot(voltage_new, voltage_new, label = "real", color = "blue")
-axs[0,1].plot(voltage_new, sinusoid_new_2, label = "pred", color = "red", linestyle = "dotted")
-axs[0,1].set_title("Eqn: \n 0.3*np.sin(226.203834030565*time_data_new - 1.58242902181405) - 0.05")
-
-axs[1,0].plot(voltage_new, voltage_new, label = "real", color = "blue")
-axs[1,0].plot(voltage_new, sinusoid_new_3, label = "pred", color = "red", linestyle = "dotted")
-axs[1,0].set_title("Eqn: \n 0.3*np.sin(226.203834030565*time_data_new - np.pi/2) - 0.05")
-
-axs[1,1].plot(voltage_new, voltage_new, label = "real", color = "blue")
-axs[1,1].plot(voltage_new, sinusoid_new_4, label = "pred", color = "red", linestyle = "dotted")
-axs[1,1].set_title("Eqn: \n 0.3*np.sin((np.pi*2*36)*time_data_old - (np.pi/2)) - 0.05")
-
-
-fig.supxlabel("Voltage pred")
-fig.supylabel("Voltage real")
-fig.tight_layout()
-plt.show() """
-
-
-""" fig, axs = plt.subplots()
-axs.plot(time_data_old, voltage_old, label = "real", color = "blue")
-axs.plot(time_data_old, sinusoid_old, label = "sinusoid", color = "red", linestyle = "dotted")
-axs.set_xlabel("time")
-axs.set_ylabel("Voltage")
-axs.legend()
-fig.tight_layout()
-plt.show() """
 def fourier_transform(current, time_data):
    
     ft=np.fft.fft(current)
@@ -180,75 +57,182 @@ def filter_fft(freqs, ft, band_size, Hz, desired_harmonic):
     
     return filtered_ft
 
+####
 
-band_size=0.1
-freqs, ft = fourier_transform(current_new, time_data_new)
-freqs_pred, ft_pred = fourier_transform(current_new_nima, time_data_new)
-
-""" ax1.plot(freqs, log_ft_filtered, color = "blue", label="real")
-ax1.plot(freqs_pred, log_ft_filtered_pred, color = "red", label="pred")
-ax1.set_xlim(harmonic*int(Hz)-harmonic*int(Hz)*0.03, harmonic*int(Hz)+harmonic*int(Hz)*0.03)
-ax1.set_title(f"Harmonic {harmonic}") """
-
+time_data, voltage, current, slice = load_data(0)
 
 fig, axs = plt.subplots()
+axs.plot(time_data, voltage, label = "voltage")
+axs.set_xlabel("time")
+axs.set_ylabel("voltage")
+axs.set_title("FTacV - voltage-time")
+fig.tight_layout()
+plt.show()
 
-axs.plot(voltage_new, current_new, label = "blank", color = "blue")
-axs.plot(voltage_new_nima, current_new_nima, label = "NimA", color = "red")
-axs.set_xlabel("Voltage")
-axs.set_ylabel("Current")
+fig, axs = plt.subplots()
+axs.plot(time_data, current, label = "voltage")
+axs.set_xlabel("time")
+axs.set_ylabel("current")
+axs.set_title("FTacV - current-time")
+fig.tight_layout()
+plt.show()
+
+
+
+
+output_filepath = rf"results/20250618-FTacV-explore/fft/"
+Path(output_filepath).mkdir(parents=True, exist_ok=True)
+
+
+""" #calculating predicted current
+x, dx, f = symbols("x dx f")
+current_pred_lambda = lambdify([x, dx, f], eqn)
+current_pred = current_pred_lambda(voltage, dv_dt, freq) """
+
+band_size=0.1
+freqs, ft = fourier_transform(current, time_data)
+#freqs_pred, ft_pred = fourier_transform(current_pred, time_data)
+
+#ploting all harmonics
+fig, axs = plt.subplots()
+axs.plot(freqs, np.log10(ft**2), color = "blue", label="real")
+#axs.plot(freqs_pred, np.log10(ft_pred**2), color = "red", label="pred")
+axs.set_xlim(0,400)
+axs.set_ylim(-4, 3)
+axs.set_xlabel("Frequency")
+axs.set_ylabel("Log10 ft^2")
+axs.set_title(f"FTacV all harmonics")
 axs.legend()
 fig.tight_layout()
+plt.savefig(os.path.join(output_filepath, f"FTacV-all-harmonic-freq.png"))
+
+#plotting figures 1 by 1
+Hz = 36
+for harmonic in range(1,10):
+    fig, axs = plt.subplots()
+
+    ft_filtered = filter_fft(freqs, ft, band_size, Hz, harmonic)
+    #ft_filtered_pred = filter_fft(freqs_pred, ft_pred, band_size, Hz, harmonic)
+    
+    log_ft_filtered = np.log10(ft_filtered**2)
+    #log_ft_filtered_pred = np.log10(ft_filtered_pred**2)
+    
+    axs.plot(freqs, log_ft_filtered, color = "blue", label="real")
+    #axs.plot(freqs_pred, log_ft_filtered_pred, color = "red", label="pred")
+    axs.set_xlim(harmonic*int(Hz)-harmonic*int(Hz)*0.03, harmonic*int(Hz)+harmonic*int(Hz)*0.03)
+    axs.legend()
+    axs.set_xlabel("Frequency (Hz)")
+    axs.set_ylabel("Log10 ft^2")
+    axs.set_title(f"FTacV harmonic {harmonic} in freq domain")
+    fig.tight_layout()
+    Path(os.path.join(output_filepath,"freq_domain")).mkdir(parents=True, exist_ok=True)
+    plt.savefig(os.path.join(output_filepath, "freq_domain", f"FTacV-harmonic-{harmonic}-freq.png"))
+    plt.close(fig.figure)
 
 
-fig2, axs2 = plt.subplots()
+    inverseft=np.fft.ifft(ft_filtered)
+    #inverseft_pred=np.fft.ifft(ft_filtered_pred)
 
-axs2.plot(freqs, np.log10(ft**2), color = "blue", label="blank")
-axs2.plot(freqs_pred, np.log10(ft_pred**2), color = "red", label="NimA")
-axs2.set_xlim(0,400)
-axs2.set_ylim(-8, 2)
-axs2.set_xlabel("Frequency")
-axs2.set_ylabel("Log10 ft^2")
-axs2.legend()
+    fig, axs = plt.subplots()
+    axs.plot(time_data, inverseft, color = "blue", label="real")
+    #axs.plot(time_data, inverseft_pred, color = "red", label="pred")
+    axs.legend()
+    axs.set_xlabel("Time")
+    axs.set_ylabel("Current")
+    axs.set_title(f"File {Hz}Hz harmonic {harmonic} in time domain")
+    fig.tight_layout()
+    Path(os.path.join(output_filepath,"time_domain")).mkdir(parents=True, exist_ok=True)
+    plt.savefig(os.path.join(output_filepath,"time_domain", f"FTacV-harmonic-{harmonic}-time.png"))
+    plt.close(fig.figure)
+
+
+    fig, axs = plt.subplots()
+    axs.plot(voltage, inverseft, color = "blue", label="real")
+    #axs.plot(voltage, inverseft_pred, color = "red", label="pred")
+    axs.legend()
+    axs.set_xlabel("Voltage")
+    axs.set_ylabel("Current")
+    axs.set_title(f"File {Hz}Hz harmonic {harmonic} in voltage domain")
+    fig.tight_layout()
+    Path(os.path.join(output_filepath,"voltage_domain")).mkdir(parents=True, exist_ok=True)
+    plt.savefig(os.path.join(output_filepath,"voltage_domain", f"FTacV-harmonic-{harmonic}-freq.png"))
+    plt.close(fig.figure)
+
+#Plotting 3 by 3 figures
+
+fig1, axs1 = plt.subplots(3,3)
+axs1 = axs1.flatten()
+
+fig2, axs2 = plt.subplots(3,3)
+axs2 = axs2.flatten()
+
+fig3, axs3 = plt.subplots(3,3)
+axs3 = axs3.flatten()
+
+for harmonic in range(1,10):
+    ax1 = axs1[harmonic - 1]
+
+    ft_filtered = filter_fft(freqs, ft, band_size, Hz, harmonic)
+    #ft_filtered_pred = filter_fft(freqs_pred, ft_pred, band_size, Hz, harmonic)
+    
+    log_ft_filtered = np.log10(np.abs(ft_filtered))
+    #log_ft_filtered_pred = np.log10(np.abs(ft_filtered_pred))
+    
+    ax1.plot(freqs, log_ft_filtered, color = "blue", label="real")
+    #ax1.plot(freqs_pred, log_ft_filtered_pred, color = "red", label="pred")
+    ax1.set_xlim(harmonic*int(Hz)-harmonic*int(Hz)*0.03, harmonic*int(Hz)+harmonic*int(Hz)*0.03)
+    ax1.set_title(f"Harmonic {harmonic}")
+
+    handles_1, labels_1 = ax1.get_legend_handles_labels()
+
+    ax2 = axs2[harmonic - 1]
+
+    inverseft=np.fft.ifft(ft_filtered)
+    #inverseft_pred=np.fft.ifft(ft_filtered_pred)
+
+    ax2.plot(time_data, inverseft, color = "blue", label="real")
+    #ax2.plot(time_data, inverseft_pred, color = "red", label="pred")
+    ax2.set_title(f"Harmonic {harmonic}")
+
+    handles_2, labels_2 = ax2.get_legend_handles_labels()
+
+    ax3 = axs3[harmonic - 1]
+    ax3.plot(voltage, inverseft, color = "blue", label="real")
+    #ax3.plot(voltage, inverseft_pred, color = "red", label="pred")
+    ax3.set_title(f"Harmonic {harmonic}")
+
+    handles_3, labels_3 = ax3.get_legend_handles_labels()
+
+
+    log_ft_filtered[~np.isfinite(log_ft_filtered)] = 0
+    #log_ft_filtered_pred[~np.isfinite(log_ft_filtered_pred)] = 0
+    """     with open(os.path.join(output_filepath, f"summary.csv"), "a", newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([harmonic,
+                        calculate_MSE_complex(log_ft_filtered,log_ft_filtered_pred),
+                        calculate_MSE_complex(inverseft,inverseft_pred),
+                        ]) """
+
+fig1.legend(handles_1, labels_1, loc='lower right')
+fig1.supxlabel("Frequency (Hz)")
+fig1.supylabel("Log10 abs(ft)")
+fig1.suptitle(f"File {Hz}Hz harmonics in freq domain")
+fig1.tight_layout()
+fig1.savefig(os.path.join(output_filepath, f"FTacV-harmonics-freq-3x3.png"))
+plt.close(fig1.figure)
+
+fig2.legend(handles_2, labels_2, loc='lower right')
+fig2.supxlabel("Time")
+fig2.supylabel("Current")
+fig2.suptitle(f"File {Hz}Hz harmonics in time domain")
 fig2.tight_layout()
+fig2.savefig(os.path.join(output_filepath, f"FTacV-harmonics-time-3x3.png"))
+plt.close(fig2.figure)
 
-
-harmonic = 1
-ft_filtered = filter_fft(freqs, ft, band_size, Hz, harmonic)
-ft_filtered_pred = filter_fft(freqs_pred, ft_pred, band_size, Hz, harmonic)
-
-#log_ft_filtered = np.log10(np.abs(ft_filtered))
-#log_ft_filtered_pred = np.log10(np.abs(ft_filtered_pred))
-
-inverseft=np.fft.ifft(ft_filtered)
-inverseft_pred=np.fft.ifft(ft_filtered_pred)
-
-fig3, axs3 = plt.subplots()
-axs3.plot(time_data_new, inverseft, color = "blue", label="blank")
-axs3.plot(time_data_new, inverseft_pred, color = "red", label="NimA")
-axs3.legend()
-axs3.set_xlabel("Time")
-axs3.set_ylabel("Current")
-axs3.set_title(f"File {Hz}Hz harmonic {harmonic} in time domain")
+fig3.legend(handles_3, labels_3, loc='lower right')
+fig3.supxlabel("Voltage")
+fig3.supylabel("Current")
+fig3.suptitle(f"File {Hz}Hz harmonics in voltage domain")
 fig3.tight_layout()
-
-harmonic = 7
-ft_filtered = filter_fft(freqs, ft, band_size, Hz, harmonic)
-ft_filtered_pred = filter_fft(freqs_pred, ft_pred, band_size, Hz, harmonic)
-
-#log_ft_filtered = np.log10(np.abs(ft_filtered))
-#log_ft_filtered_pred = np.log10(np.abs(ft_filtered_pred))
-
-inverseft=np.fft.ifft(ft_filtered)
-inverseft_pred=np.fft.ifft(ft_filtered_pred)
-
-fig4, axs4 = plt.subplots()
-axs4.plot(time_data_new, inverseft, color = "blue", label="blank")
-axs4.plot(time_data_new, inverseft_pred, color = "red", label="NimA")
-axs4.legend()
-axs4.set_xlabel("Time")
-axs4.set_ylabel("Current")
-axs4.set_title(f"File {Hz}Hz harmonic {harmonic} in time domain")
-fig4.tight_layout()
-
-plt.show()
+fig3.savefig(os.path.join(output_filepath, f"FTacV-harmonics-voltage-3x3.png"))
+plt.close(fig3.figure)

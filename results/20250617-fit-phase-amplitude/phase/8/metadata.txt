@@ -1,0 +1,14 @@
+model run ID: 20250617_162929_jx0Rqx
+        X = np.array(X).reshape(-1,1)
+        Y = np.array(Y).reshape(-1,1)
+
+        #pysr model definition
+        model = PySRRegressor(
+            maxsize=30,
+            niterations=100,
+            batching= True,
+            binary_operators=["+","*"],
+            elementwise_loss="loss(prediction, target) = (prediction - target)^2",
+        )
+
+                       
