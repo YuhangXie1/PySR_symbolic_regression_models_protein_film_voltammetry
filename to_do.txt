@@ -1,0 +1,9 @@
+Try plotting the difference in two solutions
+Quantitative difference between the red and blue peaks when removing harmonics
+Weight the MSE for max current
+Try weighting the data before modelling. Try weighting by frequency
+Run PySR on one data set with the phase info, then try predicting different frequency with phase data
+Explore robustness (add noise and see whether same model is found)
+Look at magnitude of the terms between blank and protein data
+
+Take fourier series model of capacitance and apply to protein data (by inference). Build the faradaic model (single redox)
