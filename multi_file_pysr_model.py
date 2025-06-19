@@ -91,7 +91,7 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val, ID):
         maxsize=40,
         niterations=200,
         batching= True,
-        binary_operators=["+","*","^"],
+        binary_operators=["+","*"],
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
 
@@ -111,7 +111,7 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val, ID):
         maxsize=40,
         niterations=200,
         batching= True,
-        binary_operators=["+","*","^"],
+        binary_operators=["+","*"],
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
 
@@ -239,11 +239,12 @@ def fit_voltage_eqn(time_data, voltage):
     return voltage_eqn, dv_dt_eqn, coeff_array
 
 ### main ###
-output_filepath = rf"results/20250618-multi-fit-workflow-6/"
+output_filepath = rf"results/20250618-multi-fit-workflow-8/9-99"
 #load_filepath = rf"Data_for_eq_learning\20250611-CjX\20250611-CjX-PSV-3Hz.csv"
 
-number_of_repeats = 3
-files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
+number_of_repeats = 5
+#files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
+files_freq = [9, 99]
 
 #initialising headers
 Path(os.path.join(output_filepath)).mkdir(parents = True, exist_ok = True)
