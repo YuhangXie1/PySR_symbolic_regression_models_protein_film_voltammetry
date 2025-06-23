@@ -1,0 +1,3 @@
+model repeat 0 time taken = 0:25:53.882189 hr:min:sec 
+model repeat 1 time taken = 0:34:47.854066 hr:min:sec 
+model repeat 2 time taken = 0:28:24.867820 hr:min:sec 

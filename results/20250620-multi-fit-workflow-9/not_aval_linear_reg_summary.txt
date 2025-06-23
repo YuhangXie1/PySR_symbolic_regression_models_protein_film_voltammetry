@@ -1,0 +1,27 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:            average_MSE   R-squared:                       0.869
+Model:                            OLS   Adj. R-squared:                  0.771
+Method:                 Least Squares   F-statistic:                     8.840
+Date:                Mon, 23 Jun 2025   Prob (F-statistic):             0.0308
+Time:                        17:51:03   Log-Likelihood:                 177.98
+No. Observations:                   8   AIC:                            -348.0
+Df Residuals:                       4   BIC:                            -347.6
+Df Model:                           3                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const       4.034e-10   5.27e-11      7.653      0.002    2.57e-10     5.5e-10
+dv/dt_norm -1.345e-10   5.27e-11     -2.551      0.063   -2.81e-10    1.19e-11
+timeshift  -2.294e-10   5.27e-11     -4.351      0.012   -3.76e-10    -8.3e-11
+allow_div  -5.476e-11   5.27e-11     -1.039      0.358   -2.01e-10    9.16e-11
+==============================================================================
+Omnibus:                        0.400   Durbin-Watson:                   2.212
+Prob(Omnibus):                  0.819   Jarque-Bera (JB):                0.440
+Skew:                           0.111   Prob(JB):                        0.802
+Kurtosis:                       1.872   Cond. No.                         3.73
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

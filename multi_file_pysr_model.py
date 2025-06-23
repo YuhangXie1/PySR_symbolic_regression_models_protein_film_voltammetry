@@ -91,7 +91,7 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val, ID):
         maxsize=40,
         niterations=200,
         batching= True,
-        binary_operators=["+","*"],
+        binary_operators=["+","*","/"],
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
 
@@ -111,7 +111,7 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val, ID):
         maxsize=40,
         niterations=200,
         batching= True,
-        binary_operators=["+","*"],
+        binary_operators=["+","*","/"],
         elementwise_loss="loss(prediction, target) = (prediction - target)^2",
     )
 
@@ -126,7 +126,7 @@ def model(time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val, ID):
         best = model.get_best()
         expanded_form = expand(sympify(str(model.sympy())))
         x0, x1, x2, x3, x4, x5, x6, x7, x8 = symbols("x0 x1 x2 x3 x4 x5 x6 x7 x8")
-        x, dx, A, w, p, c, A_val, p_val = symbols("x dx A w p c A_val p_val") 
+        x, dx, A, w, p, c, A_val, p_val, t = symbols("x dx A w p c A_val p_val t")
         #substituted_form = expand(expanded_form.subs([(x0,x),(x1,x**2),(x2,x**3),(x3,dx),(x4,dx**2),(x5,dx**3),(x6,f),(x7,f**2),(x8,f**3)]))
         substituted_form = expand(expanded_form.subs([(x0,x),(x1,dx),(x2,A),(x3,w),(x4,p),(x5,c),(x6,A_val),(x7,p_val)]))
         #substituted_form = expand(expanded_form.subs([(x0,x),(x1,dx)]))
@@ -239,12 +239,12 @@ def fit_voltage_eqn(time_data, voltage):
     return voltage_eqn, dv_dt_eqn, coeff_array
 
 ### main ###
-output_filepath = rf"results/20250618-multi-fit-workflow-8/9-99"
+output_filepath = rf"results/20250620-multi-fit-workflow-9/allow_division-time-shift-aval-dvdt"
 #load_filepath = rf"Data_for_eq_learning\20250611-CjX\20250611-CjX-PSV-3Hz.csv"
 
-number_of_repeats = 5
-#files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
-files_freq = [9, 99]
+number_of_repeats = 3
+files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
+#files_freq = [9, 99]
 
 #initialising headers
 Path(os.path.join(output_filepath)).mkdir(parents = True, exist_ok = True)
@@ -271,28 +271,46 @@ with open(os.path.join(output_filepath, "summary_current_model.csv"), "a", newli
 #find voltage eqn and stitch data together
 combined_data_array = np.empty((1,10))
 for Hz in files_freq:
+    
     #load data
     #time_data, voltage, current, slice_array = load_data_2(load_filepath)
     time_data, voltage, current, slice_array = load_data(Hz)
+
     #find voltage eqn
     voltage_eqn, dv_dt_eqn, coeff_array = fit_voltage_eqn(time_data, voltage)
+    A = coeff_array[0]
+    w = coeff_array[1]
+    p = coeff_array[2]
+    c = coeff_array[3]
 
     #current phase and amplitude data
     phase_data = pd.read_csv(rf"results\20250617-current-phase-original-set\summary.csv")
     p_val = np.array(phase_data.loc[phase_data["Hz"] == Hz]["phase"])[0]
     A_val = np.array(phase_data.loc[phase_data["Hz"] == Hz]["amplitude"])[0]
 
-    x0 = Symbol("x0")
-    dv_dt_lambda = lambdify(x0,dv_dt_eqn)
-    dv_dt = dv_dt_lambda(time_data)
+    #time shift t
+    time_data = time_data + (p_val/w)
 
-    A = np.full((1,len(time_data)), coeff_array[0])[0]
-    w = np.full((1,len(time_data)), coeff_array[1])[0]
-    p = np.full((1,len(time_data)), coeff_array[2])[0]
-    c = np.full((1,len(time_data)), coeff_array[3])[0]
+    #new time shifted voltage and dv_dt
+    x0 = Symbol("x0")
+    voltage_lambda = lambdify(x0,voltage_eqn)
+    voltage = voltage_lambda(time_data)
+
+    dv_dt_lambda = lambdify(x0,dv_dt_eqn)
+    dv_dt = dv_dt_lambda(time_data)/w #normalise dV/dt
+    #dv_dt = dv_dt_lambda(time_data)
+    #normalise current
+    current = current/A_val
+
+    #other variables
+    A = np.full((1,len(time_data)), A)[0]
+    w = np.full((1,len(time_data)), w)[0]
+    p = np.full((1,len(time_data)), p)[0]
+    c = np.full((1,len(time_data)), c)[0]
     p_val = np.full((1,len(time_data)), p_val)[0]
     A_val = np.full((1,len(time_data)), A_val)[0]
 
+    #combining
     combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val]).T],0)
 
 combined_data_array = np.delete(combined_data_array, (0), axis=0)
