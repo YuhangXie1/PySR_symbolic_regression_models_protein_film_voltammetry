@@ -3,22 +3,23 @@ Done/End:
 Substitute dx*x**3 with sins and cosines, to show that it is the fourier transform. Use Sin(2 theta) etc. Change basis and let PySR do it?
 Fourier form fit? - tried with someone else's package but depreciated and does not seem to work well anyway
     - Will need to write own code if we want to do this
-
+Run PySR on one data set with the phase info, then try predicting different frequency with phase data
+Weight the MSE for max current
+Frequency dispersion - phase change is a function of frequency. Maybe try with two files and pass the coefficients into the PySR and see if it can work out the phase change term. ASin(w(t + phi(transform)) + phi(input))
+ASin(wt + phi(input) + phi(transform)) + C. Use Sin(2*theta) instead of Sin(theta)^2 since squaring can mess up the phase
+Try weighting the data before modelling. Try weighting by frequency
 
 Current jobs:
 
 Try this on FTAC data (non sinusoidal) - separate out the linear ramp (filter out and take inverse).
 Careful how to normalise this. Try 1/signal size. If amplitude of the inveser sine wave larger than input then need normalising.
 
-Frequency dispersion - phase change is a function of frequency. Maybe try with two files and pass the coefficients into the PySR and see if it can work out the phase change term. ASin(w(t + phi(transform)) + phi(input))
-ASin(wt + phi(input) + phi(transform)) + C. Use Sin(2*theta) instead of Sin(theta)^2 since squaring can mess up the phase
-
 Try plotting the difference in two solutions
 Quantitative difference between the red and blue peaks when removing harmonics
-Weight the MSE for max current
-Try weighting the data before modelling. Try weighting by frequency
-Run PySR on one data set with the phase info, then try predicting different frequency with phase data
+
 Explore robustness (add noise and see whether same model is found)
 Look at magnitude of the terms between blank and protein data
 
 Take fourier series model of capacitance and apply to protein data (by inference). Build the faradaic model (single redox)
+
+Analyse multifile equation. Compare allow division model vs without. Does division model simplify nicely into fourier series???

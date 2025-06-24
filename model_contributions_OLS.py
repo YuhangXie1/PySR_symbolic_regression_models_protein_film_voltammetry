@@ -21,14 +21,17 @@ data_aval_norm_not = data[data["a_val_norm"] == 0].copy()
 X = data_aval_norm_not[["dv/dt_norm", "timeshift", "allow_div"]]
 Y = data_aval_norm_not["average_MSE"]
 
-#adding constant
-X = sm.add_constant(X)
+X = sm.add_constant(X) #adding constant
 
-# Fit OLS regression
+#regression
 model = sm.OLS(Y, X).fit()
-
-# Print regression summary
 print(model.summary())
+
+#plotting
+
+
+
+
 
 """ output_filepath = r"results\20250620-multi-fit-workflow-9"
 filename = "not_aval_linear_reg_summary.txt"
@@ -36,7 +39,7 @@ with open(os.path.join(output_filepath, filename), "w") as file:
     file.write(model.summary().as_text()) """
 
 
-import matplotlib.pyplot as plt
+""" import matplotlib.pyplot as plt
 
 # Predicted values
 y_pred = model.fittedvalues
@@ -90,4 +93,4 @@ plt.xlabel("Variable")
 plt.ylabel("Effect on MSE")
 plt.grid(True)
 plt.tight_layout()
-plt.show()
+plt.show() """

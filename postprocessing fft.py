@@ -9,7 +9,7 @@ import csv
 
 def calculate_MSE(y, y_pred):
     """Returns the mean squared error between a y value (real) and a predicted y value (prediction)."""
-    mse = sum((y_pred - y)**2)
+    mse = sum((y_pred - y)**2)/len(y)
     return mse
 
 def fourier_transform(current, time_data):
@@ -29,11 +29,13 @@ def filter_fft(freqs, ft, band_size, Hz, desired_harmonic):
     return filtered_ft
 
 def load_data(Hz):
+    """
+    Returns numpy arrays of time_data, voltage, current and frequency for a set of data files
+    """
     #loading data
     data_volt = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_voltage", sep="\t", names = ["time","voltage"])
     data_amp = pd.read_csv(f"Data_for_eq_learning/{Hz}_Hz_2_cv_current", sep="\t", names = ["time","current"])
     data_combined = data_volt.join(data_amp["current"])
-    data_combined.insert(0, "Freq", Hz)
 
     #slicing data to remove start and end noise. Putting data into tuples
     slice_start = 550
@@ -41,35 +43,25 @@ def load_data(Hz):
     time_data = np.array(data_combined["time"].iloc[slice_start:slice_end])
     voltage = np.array(data_combined["voltage"].iloc[slice_start:slice_end])
     current = np.array(data_combined["current"].iloc[slice_start:slice_end])
-    freq = np.array(data_combined["Freq"].iloc[slice_start:slice_end])
 
-    file_loc = rf"results\20250522-multi-fit-workflow-1\test 5"
-    voltage_eqn_file = pd.read_csv(os.path.join(file_loc, "summary_voltage_models.csv"))
-    dv_dt_eqn = np.array(voltage_eqn_file.loc[voltage_eqn_file["Hz"] == Hz, ]["dv_dt_eqn"])[0]
-    dv_dt_sympy = sympify(dv_dt_eqn)
-
-    x0, x, dx, f = symbols("x0 x dx f")
-    dv_dt_lambda = lambdify(x0,dv_dt_sympy)
-    dv_dt = dv_dt_lambda(time_data)
-
-    #loading summary file
-    #files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
-    file_loc = rf"results\20250523-multi-fit-workflow-2\test-1-36-45"
-    data = pd.read_csv(os.path.join(file_loc,"summary_current_model.csv"))
-    data_equations = sympify(np.array(data["substituted_form"]))
-
-
-    return time_data, voltage, current, dv_dt, freq, data_equations
+    return time_data, voltage, current, [slice_start, slice_end]
 
 
 ##main##
 #files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
 files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
 for Hz in files_freq:
-    output_filepath = rf"results/20250527-multifit-workflow-fft-post/36,45/{Hz}/"
+    output_filepath = rf"results/20250624-normalised-no-div/"
     Path(output_filepath).mkdir(parents=True, exist_ok=True)
 
-    time_data, voltage, current, dv_dt, freq, data_equations = load_data(Hz)
+    time_data, voltage, current, slice = load_data(Hz)
+
+    #loading summary file
+    file_loc = rf"results\20250620-multi-fit-workflow-9\time-shift-normalised_dv_dt_aval"
+    data = pd.read_csv(os.path.join(file_loc,"summary_current_model.csv"))
+    data_equations = sympify(np.array(data["substituted_form"]))
+
+
 
     eqn_number = 0
     eqn = data_equations[eqn_number]
