@@ -23,3 +23,12 @@ Look at magnitude of the terms between blank and protein data
 Take fourier series model of capacitance and apply to protein data (by inference). Build the faradaic model (single redox)
 
 Analyse multifile equation. Compare allow division model vs without. Does division model simplify nicely into fourier series???
+Does multifit happen with fourier basis anyway??
+
+What happens to model if p, pval, frequency, is removed? How important are those values?
+
+9Hz data looks weird. How does the model look without it?
+
+How does model deal with FTV data (if linear portion is removed/filtered out)
+
+How does model deal with multifreq file if each freq is filtered into one file?

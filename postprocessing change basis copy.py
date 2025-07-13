@@ -14,21 +14,17 @@ data = pd.read_csv(os.path.join(file_loc,"summary_voltage_model.csv"))
 #defining symbols
 x, dx  = symbols("x dx")
 x0, t = symbols("x0 t", positive = True, real = True)
-A, c, f, w = symbols("A, c, f w", real = True)
+A, w, p, c, A_val, p_val = symbols("A w p c A_val p_val", real = True)
 
-A = -0.299838027154127
-c = -0.0452512658173993
 
-voltage_eqn = A*sp.sin(w*x0 - sp.pi/2) + c
-dv_dt_eqn = A*w*sp.cos(w*x0 - sp.pi/2)
+voltage_eqn = A*sp.sin(w*t - sp.pi/2) + c
+dv_dt_eqn = A*sp.cos(w*t - sp.pi/2) #normalised
 
-voltage_eqn = 0.3 * sp.sin(2*sp.pi*5*x0) + 0.1 * sp.sin(2*sp.pi*7*x0) + 0.05 * sp.sin(2*sp.pi*11*x0)
-dv_dt_eqn = diff(voltage_eqn, x0)
+c1, c2, c3, c4, c5, c6, c7, c8, c9, c10 = symbols("c1 c2 c3 c4 c5 c6 c7 c8 c9 c10", real = True)
+current_eqn = "c1*dx*p_val*x**2 + c2*dx*p_val*x + c3*dx*x**2 + c4*dx*x + c5*dx - c6*p*p_val*x**2 - c7*p*x**2 - c8*p_val*x + c9*x**2 - c10"
+current_eqn = sympify(current_eqn)
 
-current_eqn = sympify("-5.4927364e-6*dx*x + 1.1852022e-5*dx + 8.646056e-5*x")
-c1, c2, c3, c4, c5, c6, c7 = symbols("c1 c2 c3 c4 c5 c6 c7", real = True)
-#current_eqn = c1*dx*x**3 + c2*dx*x + c3*x**2+ c4*dx + c5*x + c6
-#current_eqn = - c2*dx*x**2 - c3*dx*x + c4*dx + c5*x**2 + c6*x + c7
+
  
 
 print("# Substituted #")
@@ -61,5 +57,3 @@ constant_term = simplified_form.as_independent(*trig_basis_array)
 coeff_dict[1] = constant_term[0]
 
 print(coeff_dict) 
-
-#2.7175533e-5*c*sin(t*w) - 0.000104288472158871*c*sin(2*t*w) + 2.7175533e-5*c*sin(3*t*w) + 1.35877665e-5*c*sin(4*t*w) + 1.35877665e-5*c*cos(3*t*w) - 1.35877665e-5*c*cos(7*t*w) + 0.0005261732*sin(t*w) - 0.00028988792*cos(t*w) + 2.7175533e-5*cos(2*t*w)

@@ -14,7 +14,7 @@ import sympy as sp
 
 def calculate_MSE(y, y_pred):
     """Returns the mean squared error between a y value (real) and a predicted y value (prediction)."""
-    mse = sum((y_pred - y)**2)
+    mse = sum((y_pred - y)**2)/len(y)
     return mse
 
 

@@ -14,7 +14,7 @@ def cos_similarity(x,y):
 
 def calculate_MSE(y, y_pred):
     """Returns the mean squared error between a y value (real) and a predicted y value (prediction)."""
-    mse = sum((y_pred - y)**2)
+    mse = sum((y_pred - y)**2)/len(y)
     return mse
 
 def fourier_transform(current, time_data):
@@ -60,7 +60,7 @@ def load_data(Hz):
     data = pd.read_csv(os.path.join(file_loc, str(Hz),"summary_current_model.csv"))
     data_equations = sympify(np.array(data["substituted_form"]))
 
-    return time_data, voltage, current, dv_dt, data_equations
+    return time_data, voltage, current, slice
 
 def load_data_2(filepath):
     data = pd.read_csv(filepath, header=0)
@@ -264,19 +264,20 @@ def generate_fft_graphs(time_data, current, current_pred, eqn_number, terms, out
 
 ##main##
 #files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
-Hz = 3
-load_filepath = rf"Data_for_eq_learning\20250611-CjX\20250611-blank-PSV-3Hz.csv"
-output_filepath = rf"results\20250616-CjX-fit-workflow-2\CjX\20250611-blank-PSV-3Hz\fft"
-file_loc = rf"results\20250616-CjX-fit-workflow-2\blank\20250611-blank-PSV-3Hz"
+Hz = 36
+#load_filepath = rf"Data_for_eq_learning\20250611-CjX\20250611-blank-PSV-3Hz.csv"
+output_filepath = rf"report_plots\36Hz-MSE-remove-higher-terms"
+file_loc = rf"results\20250513-fit-workflow\36"
 
-time_data, voltage, current, slice = load_data_2(load_filepath)
+#time_data, voltage, current, slice = load_data_2(load_filepath)
+time_data, voltage, current, slice = load_data(Hz)
 
 #loading voltage equation
 voltage_eqn_file = pd.read_csv(os.path.join(file_loc, "summary_voltage_model.csv"))
-voltage_sympy = sympify(np.array(voltage_eqn_file["voltage_eqn"])[0])
+voltage_sympy = sympify(np.array(voltage_eqn_file["picked_equation"])[0])
 
 x0 = Symbol("x0")
-dv_dt_eqn = sympify(np.array(voltage_eqn_file["dv_dt_eqn"])[0])
+dv_dt_eqn = diff(voltage_sympy, x0)
 dv_dt_lambda = lambdify(x0,dv_dt_eqn)
 dv_dt = dv_dt_lambda(time_data)
 

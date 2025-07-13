@@ -20,7 +20,7 @@ Cdl = 1e-3              # As/V          #Double layer capacitance linear coeffic
 gamma = 1e-6            # mol/m^2       #Surface coverage of the protein
 k0 = 1e-4               # 1/s           #Standard rate constant
 a = 0.3                 #               #Alpha = transfer coefficient, 0 <= a <= 1
-E0 = 1                  # V             #Potential at equilibrium
+E0 = 0                  # V             #Potential at equilibrium
 frequency = 36          # V/s           #Frequency
 
 #input voltage variables
