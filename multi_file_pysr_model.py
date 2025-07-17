@@ -239,10 +239,10 @@ def fit_voltage_eqn(time_data, voltage):
     return voltage_eqn, dv_dt_eqn, coeff_array
 
 ### main ###
-output_filepath = rf"results/20250627-multi-fit-workflow-10/time-shift-aval-dvdt-no-9Hz"
+output_filepath = rf"results/20250716-multi-fit-workflow-11/timeshift-current-dvdt-norm-incl-c"
 #load_filepath = rf"Data_for_eq_learning\20250611-CjX\20250611-CjX-PSV-3Hz.csv"
 
-number_of_repeats = 3
+number_of_repeats = 10
 files_freq = [36, 45, 54, 63, 72, 81, 90, 99]
 #files_freq = [9, 99]
 
@@ -284,7 +284,7 @@ for Hz in files_freq:
     c = coeff_array[3]
 
     #current phase and amplitude data
-    phase_data = pd.read_csv(rf"results\20250617-current-phase-original-set\summary.csv")
+    phase_data = pd.read_csv(rf"results/20250617-current-phase-original-set/summary.csv")
     p_val = np.array(phase_data.loc[phase_data["Hz"] == Hz]["phase"])[0]
     A_val = np.array(phase_data.loc[phase_data["Hz"] == Hz]["amplitude"])[0]
 
@@ -309,6 +309,14 @@ for Hz in files_freq:
     c = np.full((1,len(time_data)), c)[0]
     p_val = np.full((1,len(time_data)), p_val)[0]
     A_val = np.full((1,len(time_data)), A_val)[0]
+
+    #setting variables to 1
+    A = np.full((1,len(time_data)), 1)[0]
+    w = np.full((1,len(time_data)), 1)[0]
+    p = np.full((1,len(time_data)), 1)[0]
+    #c = np.full((1,len(time_data)), 1)[0]
+    p_val = np.full((1,len(time_data)), 1)[0]
+    A_val = np.full((1,len(time_data)), 1)[0]
 
     #combining
     combined_data_array = np.concatenate([combined_data_array, np.array([time_data, voltage, dv_dt, current, A, w, p, c, A_val, p_val]).T],0)
