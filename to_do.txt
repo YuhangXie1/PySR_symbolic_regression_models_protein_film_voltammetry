@@ -32,3 +32,14 @@ What happens to model if p, pval, frequency, is removed? How important are those
 How does model deal with FTV data (if linear portion is removed/filtered out)
 
 How does model deal with multifreq file if each freq is filtered into one file?
+
+
+Applying the model to non-sinusoidal data
+	• Linear term
+		○ DC ramp
+		○ Filter the FTAC data to get the linear part out
+			§ Fourier 0th harmonic
+	• Look into applying onto square wave
+	• Include the FTV in the multi-file equation
+	• EIS - Small amplitude sinusoid - can assume it is a linear response system
+Can the model describe the impedance response (more difficult)

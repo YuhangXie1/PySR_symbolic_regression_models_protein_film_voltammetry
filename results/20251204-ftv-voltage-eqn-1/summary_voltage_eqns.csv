@@ -1,0 +1,8 @@
+ID,loss,complexity,MSE,picked_equation,substituted_form
+0,4.06664e-09,3,0.00852795604540713,"complexity                                     3
+loss                                         0.0
+equation                        x0 * 3.311386e-5
+score                                     0.0058
+sympy_format                      x0*3.311386e-5
+lambda_format    PySRFunction(X=>x0*3.311386e-5)
+Name: 1, dtype: object"
