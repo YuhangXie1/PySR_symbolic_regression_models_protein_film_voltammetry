@@ -46,13 +46,45 @@ def load_data(Hz):
 
     return time_data, voltage, current, [slice_start, slice_end]
 
+def filter_fft_by_freqs(freqs, ft, center_freq, band_width_hz):
+    """
+    Keeps FFT bins within center_freq +/- band_width_hz, zeros the rest.
+    Works with negative frequencies automatically because freqs contains both signs.
+    """
+    mask = (freqs >= (center_freq - band_width_hz)) & (freqs <= (center_freq + band_width_hz))
+    filtered = np.zeros_like(ft, dtype=complex)
+    filtered[mask] = ft[mask]
+    return filtered
+
+def remove_first_harmonic(time_data, current, freqs, ft, fundamental_freq, band_width):
+    """
+    Returns (fundamental_time, residual_time, ft_first, ft_residual)
+    - fundamental_time: reconstructed first-harmonic in time domain (real-valued)
+    - residual_time: current minus fundamental_time
+    - ft_first: FFT containing only the fundamental bins
+    - ft_residual: FFT of the residual
+    """
+    # 1) create filtered FFT that keeps only the fundamental (±band_width)
+    ft_first = filter_fft_by_freqs(freqs, ft, fundamental_freq, band_width)
+
+    # 2) inverse to time domain and make sure result is real
+    fundamental_time = np.real(np.fft.ifft(ft_first))
+
+    # 3) subtract from original to get residual (higher harmonics)
+    residual_time = current - fundamental_time
+
+    # 4) FFT of residual if you need it
+    ft_residual = np.fft.fft(residual_time)
+
+    return fundamental_time, residual_time, ft_first, ft_residual
+
 
 ##main##
 #files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
 files_freq = [9, 36, 45, 54, 63, 72, 81, 90, 99]
 #files_freq = [0]
 for Hz in files_freq:
-    output_filepath = rf"results/20251216-fft-ftv-1/"
+    output_filepath = rf"results/20251216-fft-ftv-2/"
     Path(output_filepath).mkdir(parents=True, exist_ok=True)
 
     time_data, voltage, current, slice = load_data(Hz)
@@ -87,9 +119,10 @@ for Hz in files_freq:
     axs.set_title(f"File FTV, all harmonics")
     axs.legend()
     fig.tight_layout()
-    plt.savefig(os.path.join(output_filepath, f"FTV-all-harmonic-freq.png"))
+    #plt.savefig(os.path.join(output_filepath, f"FTV-all-harmonic-freq.png"))
     plt.show()
 
+    """
     #plotting figures 1 by 1
     for harmonic in range(1,10):
         fig, axs = plt.subplots()
@@ -189,12 +222,8 @@ for Hz in files_freq:
 
         log_ft_filtered[~np.isfinite(log_ft_filtered)] = 0
         #log_ft_filtered_pred[~np.isfinite(log_ft_filtered_pred)] = 0
-        """     with open(os.path.join(output_filepath, f"summary.csv"), "a", newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([harmonic,
-                            calculate_MSE_complex(log_ft_filtered,log_ft_filtered_pred),
-                            calculate_MSE_complex(inverseft,inverseft_pred),
-                            ]) """
+
+    
 
     fig1.legend(handles_1, labels_1, loc='lower right')
     fig1.supxlabel("Frequency (Hz)")
@@ -220,4 +249,36 @@ for Hz in files_freq:
     fig3.savefig(os.path.join(output_filepath, f"harmonics-voltage-3x3.png"))
     plt.close(fig3.figure)
 
+    """
+    #plotting and removing first harmonic
+
+    band_size=0.5
+    fundamental_freq = Hz  # your base drive frequency in Hz
+
+    # Extract and remove first harmonic
+    fundamental_time, residual_time, ft_first, ft_residual = remove_first_harmonic(
+        time_data, current, freqs, ft, fundamental_freq, band_size
+    )
+
+    fig, ax = plt.subplots()
+    ax.plot(time_data, fundamental_time, label="first harmonic (reconstructed)")
+    ax.plot(time_data, residual_time, label="residual (no 1st harmonic)", alpha=0.7)
+    ax.legend()
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Current")
+    ax.set_title(f"{Hz} Hz - fundamental removed")
+    #plt.savefig(os.path.join(output_filepath, f"{Hz}Hz", "time_domain", "fundamental_vs_residual.png"))
+    plt.show()
+    #plt.close(fig)
+
+    # Optionally inspect FFTs
+    fig, ax = plt.subplots()
+    ax.plot(freqs, np.log10(np.abs(ft_residual)**2 + 1e-20), label="residual fft (log10 power)")
+    ax.set_xlim(0, fundamental_freq*6)  # example zoom
+    ax.set_xlabel("Frequency (Hz)")
+    ax.set_ylabel("Log10 power")
+    ax.set_title("Residual spectrum (first harmonic removed)")
+    #plt.savefig(os.path.join(output_filepath, f"{Hz}Hz", "freq_domain", "residual_spectrum.png"))
+    plt.show()
+    #plt.close(fig)
 
